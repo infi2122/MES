@@ -23,7 +23,6 @@ public class multiServer {
         } finally {
             stop();
         }
-
     }
 
     public void stop() {
@@ -33,7 +32,6 @@ public class multiServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private static class EchoClientHandler extends Thread {

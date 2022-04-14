@@ -64,6 +64,8 @@ public class MES {
 
         ERP2MES erp2MES = new ERP2MES();
         String internalOrdersConcat = erp2MES.receivingFromERP();
+        if(internalOrdersConcat.equals(null))
+            return;
         System.out.println(internalOrdersConcat);
         addNewInternalOrders(internalOrdersConcat);
 
