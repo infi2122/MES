@@ -8,7 +8,8 @@ public class App {
         MES mes = new MES(new MES_Viewer());
         while (true) {
             try{
-                Thread.sleep(60000);
+                System.out.println("MES running");
+                Thread.sleep(10000);
                 mes.receiveInternalOrders();
                 mes.displayInternalOrders();
 
