@@ -4,12 +4,13 @@ import Viewers.MES_Viewer;
 public class App {
 
     public static void main(String args[]) {
+        System.out.println("MES running");
 
         MES mes = new MES(new MES_Viewer());
         while (true) {
             try{
-                System.out.println("MES running");
-                Thread.sleep(10000);
+
+                Thread.sleep(100);
                 mes.receiveInternalOrders();
                 mes.displayInternalOrders();
 
