@@ -1,6 +1,6 @@
 package Controllers;
 
-import UDP.ERP2MES;
+import UDP.ERPtunnel;
 import Models.productionOrder;
 import Models.receiveOrder;
 import Models.shippingOrder;
@@ -10,7 +10,19 @@ import java.util.ArrayList;
 
 public class MES {
 
+    // ****** VARIABLES *******
+
+    private long startTime = 0;
+    private int countdays = -1;
+    private ERPtunnel erp2mesTunnel;
+
+
+    private static class exe {
+        public static final int oneDay = 60;
+    }
+
     // ****** ATTRIBUTTES ******
+    private long currentTime;
     private MES_Viewer mes_viewer;
     private ArrayList<receiveOrder> receiveOrder;
     private ArrayList<Models.productionOrder> productionOrder;
@@ -21,6 +33,28 @@ public class MES {
         this.receiveOrder = new ArrayList<>();
         this.productionOrder = new ArrayList<>();
         this.shippingOrder = new ArrayList<>();
+    }
+
+    public void setErp2MesTunnel(ERPtunnel tunnel) {
+        erp2mesTunnel = tunnel;
+    }
+
+    public ERPtunnel getErp2mesTunnel() {
+        return erp2mesTunnel;
+    }
+
+    public void setStartTime() {
+        long init = getErp2mesTunnel().initTimer();
+        if (init != -1)
+            startTime = init;
+    }
+
+    public long getCurrentTime() {
+        return currentTime;
+    }
+
+    public void setCurrentTime(long currentTime) {
+        this.currentTime = currentTime;
     }
 
     public MES_Viewer getMes_viewer() {
@@ -60,10 +94,33 @@ public class MES {
 
     // ***** METHODS ******
 
+    public void countTime() {
+
+        if (countdays == -1) {
+            countdays++;
+            System.out.println("Current Day: " + countdays);
+        }
+
+        long time = System.currentTimeMillis();
+
+        if (time >= getCurrentTime() * 1000 + startTime + 1000) {
+            setCurrentTime((time - startTime) / 1000);
+
+            if ((int) getCurrentTime() / exe.oneDay > countdays) {
+                countdays = (int) getCurrentTime() / exe.oneDay;
+                System.out.println("Current Day: " + countdays);
+            }
+
+        }
+
+
+    }
+
     public void receiveInternalOrders() {
 
-        ERP2MES erp2MES = new ERP2MES();
-        String internalOrdersConcat = erp2MES.receivingFromERP();
+        String internalOrdersConcat = getErp2mesTunnel().receivingOrdersFromERP();
+        if (internalOrdersConcat.equals(null))
+            return;
         System.out.println(internalOrdersConcat);
         addNewInternalOrders(internalOrdersConcat);
 
@@ -83,7 +140,7 @@ public class MES {
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
                             //System.out.println("str_tok: " + str_tok);
-                            String last[] = str_tok.split("@",-2);
+                            String last[] = str_tok.split("@", -2);
                             //System.out.println(last[0] + " || " + last[1]);
                             receiveOrder rOrder = new receiveOrder(Integer.parseInt(last[0]), Integer.parseInt(last[1]));
                             if (!getReceiveOrder().contains(rOrder)) {
@@ -98,7 +155,7 @@ public class MES {
                 case 2:
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
-                            String last[] = str_tok.split("@",-2);
+                            String last[] = str_tok.split("@", -2);
                             //System.out.println(last[0] + " || " + last[1]);
                             productionOrder pOrder = new productionOrder(Integer.parseInt(last[0]), Integer.parseInt(last[1]));
                             if (!getProductionOrder().contains(pOrder)) {
@@ -111,7 +168,7 @@ public class MES {
                 case 3:
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
-                            String last[] = str_tok.split("@",-2);
+                            String last[] = str_tok.split("@", -2);
                             //System.out.println(last[0] + " || " + last[1]);
                             shippingOrder sOrder = new shippingOrder(Integer.parseInt(last[0]), Integer.parseInt(last[1]));
                             if (!getShippingOrder().contains(sOrder)) {
@@ -131,45 +188,7 @@ public class MES {
 
 
     }
-  /*
 
-        for (int i = 0; i < internalOrders.size(); i++) {
-            //System.out.println(internalOrders.get(i));
-            String recv[] = internalOrders.get(i).split("\\*", -1);
-            //System.out.println("recv length: " + recv.length);
-            if (i == 0) {
-                int j = 0;
-                while (j < recv.length - 1) {
-                    //System.out.println(recv[j]);
-                    String newOrder[] = recv[j].split("\\+", -1);
-                    //System.out.println(newOrder[0] + newOrder[1]);
-                    if (!getReceiveOrder().contains(new receiveOrder(Integer.parseInt(newOrder[0]), Integer.parseInt(newOrder[1]))))
-                        addReceiveOrder(new receiveOrder(Integer.parseInt(newOrder[0]), Integer.parseInt(newOrder[1])));
-                    j++;
-                }
-            } else if (i == 1) {
-                int j = 0;
-                while (j < recv.length - 1) {
-
-                    String newOrder[] = recv[j].split("\\+", -1);
-                    //System.out.println(newOrder[0] + newOrder[1]);
-                    if (!getProductionOrder().contains(new productionOrder(Integer.parseInt(newOrder[0]), Integer.parseInt(newOrder[1]))))
-                        addProductionOrder(new productionOrder(Integer.parseInt(newOrder[0]), Integer.parseInt(newOrder[1])));
-                    j++;
-                }
-            } else {
-                int j = 0;
-                while (j < recv.length - 1) {
-                    String newOrder[] = recv[j].split("\\+", -1);
-                    //System.out.println(newOrder[0] + newOrder[1]);
-                    if(!getShippingOrder().contains(new shippingOrder(Integer.parseInt(newOrder[0]), Integer.parseInt(newOrder[1]))))
-                        addShippingOrder(new shippingOrder(Integer.parseInt(newOrder[0]), Integer.parseInt(newOrder[1])));
-                    j++;
-                }
-            }
-        }
-
-    }*/
 
     // ******** VIEW METHODS *********
 
