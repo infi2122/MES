@@ -1,5 +1,6 @@
 package Controllers;
 
+import OPC_UA.opcConnection;
 import UDP.ERPtunnel;
 import Models.productionOrder;
 import Models.receiveOrder;
@@ -15,7 +16,7 @@ public class MES {
     private long startTime = 0;
     private int countdays = -1;
     private ERPtunnel erp2mesTunnel;
-
+    private opcConnection opcClient;
 
     private static class exe {
         public static final int oneDay = 60;
@@ -33,6 +34,7 @@ public class MES {
         this.receiveOrder = new ArrayList<>();
         this.productionOrder = new ArrayList<>();
         this.shippingOrder = new ArrayList<>();
+
     }
 
     public void setErp2MesTunnel(ERPtunnel tunnel) {
@@ -41,6 +43,14 @@ public class MES {
 
     public ERPtunnel getErp2mesTunnel() {
         return erp2mesTunnel;
+    }
+
+    public opcConnection getOpcClient() {
+        return opcClient;
+    }
+
+    public void setOpcClient(opcConnection opcClient) {
+        this.opcClient = opcClient;
     }
 
     public void setStartTime() {
@@ -187,6 +197,14 @@ public class MES {
         }
 
 
+    }
+
+    public void testeReadMCT () {
+
+        opcClient.readMCT(4);
+    }
+    public void testeWriteMCT () {
+        opcClient.writeMCT(0,2);
     }
 
 

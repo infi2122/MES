@@ -1,4 +1,5 @@
 import Controllers.MES;
+import OPC_UA.opcConnection;
 import UDP.ERPtunnel;
 import Viewers.MES_Viewer;
 import java.util.concurrent.Executors;
@@ -14,14 +15,19 @@ public class App {
         ERPtunnel ERP2tcp = new ERPtunnel();
         ERP2tcp.openConnection();
 
+        opcConnection opcConnection = new opcConnection();
+
         /* For synchronize time in ERP and MES */
         mes.setErp2MesTunnel(ERP2tcp);
         mes.setStartTime();
         /* *************************************** */
 
+        opcConnection.createOPCconnection();
+        mes.setOpcClient(opcConnection);
+
         ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(2);
+        schedulerERP.scheduleAtFixedRate(new myMES(mes),0,2, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new myTimer(mes),0,1,TimeUnit.SECONDS);
-        schedulerERP.scheduleAtFixedRate(new myMES(mes),5,60, TimeUnit.SECONDS);
 
         return;
 
@@ -40,8 +46,10 @@ public class App {
         public void run() {
 
             synchronized (mes) {
-                mes.receiveInternalOrders();
-                mes.displayInternalOrders();
+                //mes.receiveInternalOrders();
+                //mes.displayInternalOrders();
+                mes.testeReadMCT();
+                mes.testeWriteMCT();
             }
         }
 
