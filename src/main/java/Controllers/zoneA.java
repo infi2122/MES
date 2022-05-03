@@ -28,6 +28,11 @@ public class zoneA extends Thread {
     }
 
     public void setRecvType1(boolean recvType1) {
+        if (recvType1)
+            mes.getOpcClient().writeBool("prio_p1", "GVL", 1);
+        else
+            mes.getOpcClient().writeBool("prio_p1", "GVL", 0);
+
         this.recvType1 = recvType1;
     }
 
@@ -36,6 +41,11 @@ public class zoneA extends Thread {
     }
 
     public void setRecvType2(boolean recvType2) {
+        if (recvType2)
+            mes.getOpcClient().writeBool("prio_p2", "GVL", 1);
+        else
+            mes.getOpcClient().writeBool("prio_p2", "GVL", 0);
+
         this.recvType2 = recvType2;
     }
 
@@ -59,10 +69,12 @@ public class zoneA extends Thread {
 
         synchronized (mes) {
             if (!entryWH_isFull()) {
-                if (!(isRecvType1() && isRecvType2())) {
+                System.out.println("Prioridade 1: " + isRecvType1() + " Prioridade 2: " + isRecvType2());
+                if ( !isRecvType1() && !isRecvType2() ) {
                     curr_receiveOrder = setRecvType();
                 }
                 if (curr_receiveOrder != null) {
+                    System.out.println("Diferente de NULL");
                     entryCarpet();
                 }
             }
@@ -104,6 +116,7 @@ public class zoneA extends Thread {
     public void entryCarpet() {
 
         boolean sensor = mes.getOpcClient().readBool("W1in0_sensor", "IO");
+        System.out.println("Sensor TP3: " + sensor);
 
         if (piece_counter < curr_receiveOrder.getReservedQty()) {
 
@@ -125,7 +138,7 @@ public class zoneA extends Thread {
             mes.getReceiveOrder().remove(curr_receiveOrder);
             curr_receiveOrder = null;
         }
-
+        System.out.println("Piece counter: " + piece_counter + " Curr QTY: " +curr_receiveOrder.getReservedQty() );
         old_sensor = sensor;
     }
 

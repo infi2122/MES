@@ -28,9 +28,9 @@ public class App {
         mes.setOpcClient(opcConnection);
 
         ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(3);
-        schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 1, TimeUnit.SECONDS);
+        schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
-        //schedulerERP.scheduleAtFixedRate(new zoneA(mes),0, 1, TimeUnit.SECONDS);
+        schedulerERP.scheduleAtFixedRate(new zoneA(mes),0, 1, TimeUnit.SECONDS);
 
     }
 
@@ -46,9 +46,9 @@ public class App {
         public void run() {
 
             synchronized (mes) {
-                //mes.receiveInternalOrders();
-                //mes.displayInternalOrders();
-                System.out.println(mes.getOpcClient().readBool("W1in0_sensor", "IO") );
+                mes.receiveInternalOrders();
+                mes.displayInternalOrders();
+
 
             }
         }

@@ -8,9 +8,13 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.w3c.dom.ls.LSOutput;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 
 public class opcConnection {
 
@@ -57,7 +61,7 @@ public class opcConnection {
     }
 
 
-    public String read(String node, String path) {
+    public String read(String node, String path, String type) {
 
         OpcUaClient client = getOpcConnection();
 
@@ -76,11 +80,17 @@ public class opcConnection {
 
             DataValue value = mm.readValue();
 
-            String val = String.valueOf(value.getValue());
-            String[] val2 = val.split("=", -1);
-            String[] val3 = val2[1].split("}", -1);
+            if (type.equals("int")) {
+                String val = String.valueOf(value.getValue());
+                String[] val2 = val.split("=", -1);
+                String[] val3 = val2[1].split("}", -1);
 
-            return val3[0];
+                return val3[0];
+            } else if (type.equals("bool")) {
+                String val = String.valueOf(value.getValue().getValue());
+                return val;
+            }
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,9 +115,13 @@ public class opcConnection {
 
             if (type.equals("bool")) {
                 if (newValue == 1) {
-                    dataValue = new DataValue(new Variant(true));
-                } else
-                    dataValue = new DataValue(new Variant(false));
+                    boolean i = true;
+                    dataValue = new DataValue(new Variant(i));
+                } else {
+                    boolean i = false;
+                    dataValue = new DataValue(new Variant(i));
+                }
+
 
             } else if (type.equals("int")) {
                 dataValue = new DataValue(new Variant((short) newValue));
@@ -148,12 +162,12 @@ public class opcConnection {
      */
     public int readInt(String node, String path) {
 
-        return Integer.parseInt(read(node, path));
+        return Integer.parseInt(read(node, path,"int"));
     }
 
     /**
-     * @param node Means that is the variable name
-     * @param path GVL or IO
+     * @param node     Means that is the variable name
+     * @param path     GVL or IO
      * @param newValue
      */
     public void writeInt(String node, String path, int newValue) {
@@ -167,13 +181,17 @@ public class opcConnection {
      */
     public boolean readBool(String node, String path) {
 
-        return Boolean.getBoolean(read(node, path));
+        String ret = read(node,path,"bool");
+        if(ret.equals("true"))
+            return true;
+        else
+            return false;
 
     }
 
     /**
-     * @param node Means that is the variable name
-     * @param path GVL or IO
+     * @param node     Means that is the variable name
+     * @param path     GVL or IO
      * @param newValue 1 or 0
      */
     public void writeBool(String node, String path, int newValue) {
