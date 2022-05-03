@@ -88,7 +88,8 @@ public class MES_Viewer {
 
         if(recv.size()!=0){
            for (receiveOrder curr:recv){
-               System.out.println("production ID: " + curr.getOrderID() + " starts on day: " + curr.getStartDate());
+               System.out.println("production ID: " + curr.getOrderID() + " starts on day: " + curr.getStartDate() +
+               " Piece to produce: " + curr.getPieceType() + "Quantity: " + curr.getReservedQty());
            }
         }
         System.out.println("\n**** Production Orders ****");

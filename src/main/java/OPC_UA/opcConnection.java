@@ -9,7 +9,6 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -17,7 +16,9 @@ public class opcConnection {
 
     private OpcUaClient opcConnection;
     private ClientExampleRunner clientExampleRunner;
-    private String nodePath = "|var|CODESYS Control Win V3 x64.Application.GVL.";
+
+    private String globalVarNodePath = "|var|CODESYS Control Win V3 x64.Application.GVL.";
+    private String boolsVarNodePath = "|var|CODESYS Control Win V3 x64.Application.BOOLS.";
     private int nameSpaceIndex = 4;
 
     public OpcUaClient getOpcConnection() {
@@ -56,15 +57,18 @@ public class opcConnection {
     }
 
 
-    public int readMCT(int machineID) {
+    public String read(String node, int pos) {
 
         OpcUaClient client = getOpcConnection();
 
         try {
             client.connect().get();
-
+            String identifier;
             // synchronous read request via VariableNode
-            String identifier = nodePath + "MCT_" + machineID;
+            if(node.equals("MCT_")) {
+                identifier = globalVarNodePath + node + pos;
+            }else
+                identifier = boolsVarNodePath + node;
 
             NodeId node_id = new NodeId(nameSpaceIndex, identifier);
 
@@ -78,16 +82,16 @@ public class opcConnection {
 
             System.out.println(val3[0]);
 
-            return Integer.parseInt(val3[0]);
+            return val3[0];
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return -1;
+        return null;
     }
 
-    public void writeMCT(int machineID, int newTool) {
+    public void write(String node, int pos, int newTool) {
         OpcUaClient client = getOpcConnection();
 
         try {
@@ -96,7 +100,7 @@ public class opcConnection {
             short tool = (short) newTool;
 
             DataValue dataValue = new DataValue(new Variant(tool));
-            String identifier = nodePath + "MCT_" + machineID;
+            String identifier = globalVarNodePath + node + pos;
 
             CompletableFuture<StatusCode> f = client.writeValue(new NodeId(nameSpaceIndex, identifier), dataValue);
 

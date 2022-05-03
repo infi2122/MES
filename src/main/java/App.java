@@ -1,7 +1,9 @@
 import Controllers.MES;
+import Controllers.zoneA;
 import OPC_UA.opcConnection;
 import UDP.ERPtunnel;
 import Viewers.MES_Viewer;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -15,21 +17,20 @@ public class App {
         ERPtunnel ERP2tcp = new ERPtunnel();
         ERP2tcp.openConnection();
 
-        opcConnection opcConnection = new opcConnection();
-
         /* For synchronize time in ERP and MES */
         mes.setErp2MesTunnel(ERP2tcp);
         mes.setStartTime();
         /* *************************************** */
 
+        opcConnection opcConnection = new opcConnection();
+
         opcConnection.createOPCconnection();
         mes.setOpcClient(opcConnection);
 
-        ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(2);
-        schedulerERP.scheduleAtFixedRate(new myMES(mes),0,2, TimeUnit.SECONDS);
-        schedulerERP.scheduleAtFixedRate(new myTimer(mes),0,1,TimeUnit.SECONDS);
-
-        return;
+        ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(3);
+        schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
+        schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
+        schedulerERP.scheduleAtFixedRate(new zoneA(mes),0, 3, TimeUnit.SECONDS);
 
     }
 
@@ -39,17 +40,15 @@ public class App {
 
         public myMES(MES mes1) {
             this.mes = mes1;
-
         }
 
         @Override
         public void run() {
 
             synchronized (mes) {
-                //mes.receiveInternalOrders();
-                //mes.displayInternalOrders();
-                mes.testeReadMCT();
-                mes.testeWriteMCT();
+                mes.receiveInternalOrders();
+                mes.displayInternalOrders();
+
             }
         }
 

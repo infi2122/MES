@@ -1,10 +1,8 @@
 package Controllers;
 
+import Models.*;
 import OPC_UA.opcConnection;
 import UDP.ERPtunnel;
-import Models.productionOrder;
-import Models.receiveOrder;
-import Models.shippingOrder;
 import Viewers.MES_Viewer;
 
 import java.util.ArrayList;
@@ -26,14 +24,17 @@ public class MES {
     private long currentTime;
     private MES_Viewer mes_viewer;
     private ArrayList<receiveOrder> receiveOrder;
-    private ArrayList<Models.productionOrder> productionOrder;
-    private ArrayList<Models.shippingOrder> shippingOrder;
+    private ArrayList<productionOrder> productionOrder;
+    private ArrayList<shippingOrder> shippingOrder;
+    private entryWarehouse entryWH;
+
 
     public MES(MES_Viewer mes_viewer) {
         this.mes_viewer = mes_viewer;
         this.receiveOrder = new ArrayList<>();
         this.productionOrder = new ArrayList<>();
         this.shippingOrder = new ArrayList<>();
+        this.entryWH = new entryWarehouse();
 
     }
 
@@ -102,6 +103,14 @@ public class MES {
         return true;
     }
 
+    public entryWarehouse getEntryWH() {
+        return entryWH;
+    }
+
+    public void addPiece2entryWH(piece newPiece) {
+        getEntryWH().addNewPiece(newPiece);
+    }
+
     // ***** METHODS ******
 
     public void countTime() {
@@ -131,7 +140,7 @@ public class MES {
         String internalOrdersConcat = getErp2mesTunnel().receivingOrdersFromERP();
         if (internalOrdersConcat.equals(null))
             return;
-        System.out.println(internalOrdersConcat);
+        //System.out.println(internalOrdersConcat);
         addNewInternalOrders(internalOrdersConcat);
 
     }
@@ -139,7 +148,7 @@ public class MES {
     private void addNewInternalOrders(String internalOrders) {
 
         // tokens will have 3 string, for receive, production and shipping respectively
-        String[] tokens = internalOrders.split("-", -2);
+        String[] tokens = internalOrders.split("_", -2);
         int i = 1;
         for (String tok : tokens) {
             //System.out.println("tok: " + tok);
@@ -147,12 +156,20 @@ public class MES {
 
             switch (i) {
                 case 1: {
+                    getReceiveOrder().removeAll(getReceiveOrder());
+
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
                             //System.out.println("str_tok: " + str_tok);
                             String last[] = str_tok.split("@", -2);
                             //System.out.println(last[0] + " || " + last[1]);
-                            receiveOrder rOrder = new receiveOrder(Integer.parseInt(last[0]), Integer.parseInt(last[1]));
+                            // Adiciono sempre pq deitei tudo fora
+                            receiveOrder rOrder = new receiveOrder(
+                                    Integer.parseInt(last[0]),
+                                    Integer.parseInt(last[1]),
+                                    Integer.parseInt(last[2]),
+                                    Integer.parseInt(last[3])
+                                    );
                             if (!getReceiveOrder().contains(rOrder)) {
                                 addReceiveOrder(rOrder);
                                 //System.out.println(getProductionOrder().get(getProductionOrder().size())-1);
@@ -163,6 +180,8 @@ public class MES {
                     break;
                 }
                 case 2:
+                    getProductionOrder().removeAll(getProductionOrder());
+
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
                             String last[] = str_tok.split("@", -2);
@@ -176,6 +195,8 @@ public class MES {
                     i++;
                     break;
                 case 3:
+                    getShippingOrder().removeAll(getShippingOrder());
+
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
                             String last[] = str_tok.split("@", -2);
@@ -199,14 +220,20 @@ public class MES {
 
     }
 
-    public void testeReadMCT () {
+    public int ReadMCT(int machineID) {
 
-        opcClient.readMCT(4);
-    }
-    public void testeWriteMCT () {
-        opcClient.writeMCT(0,2);
+        return Integer.parseInt(opcClient.read("MCT_", machineID));
     }
 
+    public void WriteMCT(int machineID, int newTool) {
+        opcClient.write("MCT_", machineID, newTool);
+    }
+
+    public boolean ReadBools(String varName) {
+
+        return Boolean.getBoolean(opcClient.read(varName, -1));
+
+    }
 
     // ******** VIEW METHODS *********
 
