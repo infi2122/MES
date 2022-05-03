@@ -1,49 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/milo/build-tools/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/build-tools/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/milo-examples/client-examples/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/milo-examples/client-examples/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/milo-examples/server-examples/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/milo-examples/server-examples/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/milo-examples/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/milo-examples/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/dictionary-manager/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/dictionary-manager/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/dictionary-reader/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/dictionary-reader/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/integration-tests/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/integration-tests/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-client/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-client/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-core/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-server/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-server/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-tests/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/sdk-tests/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-sdk/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-core/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-generator/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-generator/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-parser-gson/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-parser-gson/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-parser/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/bsd-parser/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-client/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-client/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-core/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-server/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-server/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-tests/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/opc-ua-stack/stack-tests/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/milo/src/main/resources" charset="UTF-8" />
   </component>
 </project>

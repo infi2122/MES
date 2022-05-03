@@ -12,13 +12,14 @@ public class zoneA extends Thread {
     private boolean recvType1 = false;
     private boolean recvType2 = false;
 
+    private int piece_counter = 0;
     private boolean WH_full = false;
-
+    private boolean old_sensor = false;
+    private final int one_day = 60;
     /**
      * PRECISO SABER A QUANTIDADE DE PEÇAS A RECEBER, E A QUANTIDADE DE PEÇAS RESERVADAS A CADA ENCOMENDA
      */
-    private int currOrderID;
-    private int currOrderQty;
+    private receiveOrder curr_receiveOrder;
 
     /* ********************************************************************************** */
     // NOS SET posso enviar para o OPC os valores, porque em cada set é para alterar os booleans
@@ -46,26 +47,10 @@ public class zoneA extends Thread {
         this.WH_full = WH_full;
     }
 
-    public int getCurrOrderID() {
-        return currOrderID;
-    }
-
-    public void setCurrOrderID(int currOrderID) {
-        this.currOrderID = currOrderID;
-    }
-
-    public int getCurrOrderQty() {
-        return currOrderQty;
-    }
-
-    public void setCurrOrderQty(int currOrderQty) {
-        this.currOrderQty = currOrderQty;
-    }
-
 
     private MES mes;
 
-    public zoneA(MES mes1){
+    public zoneA(MES mes1) {
         this.mes = mes1;
     }
 
@@ -73,68 +58,75 @@ public class zoneA extends Thread {
     public void run() {
 
         synchronized (mes) {
-            setRecvType();
-            entryWH_isFull();
-
-            //entryCarpet();
+            if (!entryWH_isFull()) {
+                if (!(isRecvType1() && isRecvType2())) {
+                    curr_receiveOrder = setRecvType();
+                }
+                if (curr_receiveOrder != null) {
+                    entryCarpet();
+                }
+            }
         }
     }
 
     /**
      * Based on the current day and the reception orders, will define which type of pieces will receive
-     * AO COMEÇAR A RECEBER É PRECISO VER SE A ENCOMENDA JÁ FOI DESCARREGADA, PORQUE SENAO ENCRAVA SEMPRE
-     * PARA A 1a RECV ORDER A DESCARREGAR -> UMA HIPOTESE E VER SE JA HA PEÇAS DESSA ORDEM NO ARMAZEM
-     * POSSO REMOVER A PEÇA DO VETOR RECV ORDERS PQ O ERP SO ENVIA DO DIA N+1 E N+2, LOGO QD FOR DE N -> N+1
-     * JÁ NAO ENVIA A ORDERM DE NOVO !!! *********** CONFIRMAR ************** !!!
      */
-    public void setRecvType() {
+    public receiveOrder setRecvType() {
 
         long currDay = mes.getCurrentTime();
 
         for (receiveOrder curr : mes.getReceiveOrder()) {
-            if (curr.getStartDate() == currDay) {
-                int div = curr.getOrderID() % 100;
-                if (div == 6 || div == 8) {
-
+            if (curr.getStartDate() == currDay / 60) {
+                int currPieceType = curr.getPieceType();
+                if (currPieceType == 6 || currPieceType == 8) {
+                    setRecvType1(true);
+                    System.out.println("RECV Type 1");
+                } else {
                     setRecvType2(true);
                     System.out.println("RECV Type 2");
                 }
-                else{
-                    setRecvType1(true);
-                    System.out.println("RECV Type 1");
-                }
-
+                return curr;
             }
         }
+        return null;
     }
 
-    public void entryWH_isFull() {
+    public boolean entryWH_isFull() {
 
         if (mes.getEntryWH().getPieces().size() == mes.getEntryWH().getMAXIMUM_CAPACITY()) {
             setWH_full(true);
+            return true;
         }
+        return false;
     }
 
     public void entryCarpet() {
 
-        int n_stored = 0;
+        boolean sensor = mes.getOpcClient().readBool("W1in0_sensor", "IO");
 
-        while (n_stored < getCurrOrderQty()) {
-            if (mes.ReadBools("TP3")) {
+        if (piece_counter < curr_receiveOrder.getReservedQty()) {
 
-                piece newPiece = new piece(getCurrOrderID(), (int) mes.getCurrentTime());
-                mes.addPiece2entryWH(newPiece);
-                n_stored++;
+            if (sensor && !old_sensor) {
 
+                piece newPiece = new piece(piece_counter, curr_receiveOrder.getOrderID(), curr_receiveOrder.getStartDate() * one_day);
+                if (curr_receiveOrder.getOrderID() != -1) {
+                    newPiece.setExpectedType(curr_receiveOrder.getPieceType());
+                }
+                if (!mes.getEntryWH().getPieces().contains(newPiece)) {
+                    mes.addPiece2entryWH(newPiece);
+                    piece_counter++;
+                }
             }
-
-        }
-        if(isRecvType1())
+        } else {
+            piece_counter = 0;
             setRecvType1(false);
-        else
             setRecvType2(false);
+            mes.getReceiveOrder().remove(curr_receiveOrder);
+            curr_receiveOrder = null;
+        }
 
-
+        old_sensor = sensor;
     }
 
 

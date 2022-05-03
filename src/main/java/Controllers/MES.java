@@ -220,20 +220,7 @@ public class MES {
 
     }
 
-    public int ReadMCT(int machineID) {
 
-        return Integer.parseInt(opcClient.read("MCT_", machineID));
-    }
-
-    public void WriteMCT(int machineID, int newTool) {
-        opcClient.write("MCT_", machineID, newTool);
-    }
-
-    public boolean ReadBools(String varName) {
-
-        return Boolean.getBoolean(opcClient.read(varName, -1));
-
-    }
 
     // ******** VIEW METHODS *********
 

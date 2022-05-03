@@ -2,15 +2,17 @@ package Models;
 
 public class piece {
 
+    private int pieceID;
     private int orderID;
     private int expectedType;
     private int WHarrival;
     private int productionStart;
     private int productionEnd;
-    private int unloadStart;
-    private int unloadEnd;
+    private int shippingStart;
+    private int shippingEnd;
 
-    public piece(int orderID, int WHarrival) {
+    public piece(int pieceID, int orderID, int WHarrival) {
+        this.pieceID = pieceID;
         this.orderID = orderID;
         this.WHarrival = WHarrival;
     }
@@ -55,20 +57,20 @@ public class piece {
         this.productionEnd = productionEnd;
     }
 
-    public int getUnloadStart() {
-        return unloadStart;
+    public int getShippingStart() {
+        return shippingStart;
     }
 
-    public void setUnloadStart(int unloadStart) {
-        this.unloadStart = unloadStart;
+    public void setShippingStart(int shippingStart) {
+        this.shippingStart = shippingStart;
     }
 
-    public int getUnloadEnd() {
-        return unloadEnd;
+    public int getShippingEnd() {
+        return shippingEnd;
     }
 
-    public void setUnloadEnd(int unloadEnd) {
-        this.unloadEnd = unloadEnd;
+    public void setShippingEnd(int shippingEnd) {
+        this.shippingEnd = shippingEnd;
     }
 
 
