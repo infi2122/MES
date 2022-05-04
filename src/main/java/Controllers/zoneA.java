@@ -13,6 +13,7 @@ public class zoneA extends Thread {
     private boolean recvType2 = false;
 
     private int piece_counter = 0;
+    private int global_piece_cnt_for_id=0;
     private boolean WH_full = false;
     private boolean old_sensor = false;
     private final int one_day = 60;
@@ -124,17 +125,19 @@ public class zoneA extends Thread {
 
             if (sensor && !old_sensor) {
 
-                piece newPiece = new piece(piece_counter, curr_receiveOrder.getOrderID(), curr_receiveOrder.getStartDate() * one_day);
+                piece newPiece = new piece(global_piece_cnt_for_id, curr_receiveOrder.getOrderID(), curr_receiveOrder.getStartDate() * one_day);
                 if (curr_receiveOrder.getOrderID() != -1) {
                     newPiece.setExpectedType(curr_receiveOrder.getPieceType());
                 }
                 if (!mes.getEntryWH().getPieces().contains(newPiece)) {
                     mes.addPiece2entryWH(newPiece);
                     piece_counter++;
+                    global_piece_cnt_for_id++;
+
                 }
             }
         } else {
-            piece_counter = 0;
+            piece_counter=0;
             setRecvType1(false);
             setRecvType2(false);
             mes.getReceiveOrder().remove(curr_receiveOrder);

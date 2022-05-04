@@ -3,6 +3,7 @@ package Models;
 public class piece {
 
     private int pieceID;
+    private int rawMaterialID;
     private int orderID;
     private int expectedType;
     private int WHarrival;
@@ -11,9 +12,9 @@ public class piece {
     private int shippingStart;
     private int shippingEnd;
 
-    public piece(int pieceID, int orderID, int WHarrival) {
+    public piece(int pieceID, int rawMaterialID, int WHarrival) {
         this.pieceID = pieceID;
-        this.orderID = orderID;
+        this.rawMaterialID = rawMaterialID;
         this.WHarrival = WHarrival;
     }
 
