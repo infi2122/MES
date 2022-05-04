@@ -1,5 +1,6 @@
 import Controllers.MES;
 import Controllers.zoneA;
+import Controllers.zoneC;
 import OPC_UA.opcConnection;
 import UDP.ERPtunnel;
 import Viewers.MES_Viewer;
@@ -31,6 +32,7 @@ public class App {
         schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new zoneA(mes),0, 1, TimeUnit.SECONDS);
+        schedulerERP.scheduleAtFixedRate(new zoneC(mes),0, 1, TimeUnit.SECONDS);
 
     }
 
@@ -48,7 +50,6 @@ public class App {
             synchronized (mes) {
                 mes.receiveInternalOrders();
                 mes.displayInternalOrders();
-
 
             }
         }

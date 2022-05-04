@@ -108,8 +108,10 @@ public class zoneA extends Thread {
 
         if (mes.getEntryWH().getPieces().size() == mes.getEntryWH().getMAXIMUM_CAPACITY()) {
             setWH_full(true);
+            mes.getOpcClient().writeInt("wh_entry_full", "GVL", 1);
             return true;
         }
+        mes.getOpcClient().writeInt("wh_entry_full", "GVL", 0);
         return false;
     }
 
