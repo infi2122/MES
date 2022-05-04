@@ -16,9 +16,9 @@ public class MES {
     private ERPtunnel erp2mesTunnel;
     private opcConnection opcClient;
 
-    private static class exe {
-        public static final int oneDay = 60;
-    }
+
+    public static final int oneDay = 60;
+
 
     // ****** ATTRIBUTTES ******
     private long currentTime;
@@ -125,8 +125,8 @@ public class MES {
         if (time >= getCurrentTime() * 1000 + startTime + 1000) {
             setCurrentTime((time - startTime) / 1000);
 
-            if ((int) getCurrentTime() / exe.oneDay > countdays) {
-                countdays = (int) getCurrentTime() / exe.oneDay;
+            if ((int) getCurrentTime() / oneDay > countdays) {
+                countdays = (int) getCurrentTime() / oneDay;
                 System.out.println("Current Day: " + countdays);
             }
 
@@ -156,23 +156,23 @@ public class MES {
 
             switch (i) {
                 case 1: {
-                    getReceiveOrder().removeAll(getReceiveOrder());
+                    //getReceiveOrder().removeAll(getReceiveOrder());
 
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
                             //System.out.println("str_tok: " + str_tok);
                             String last[] = str_tok.split("@", -2);
                             //System.out.println(last[0] + " || " + last[1]);
-                            // Adiciono sempre pq deitei tudo fora
+
                             receiveOrder rOrder = new receiveOrder(
                                     Integer.parseInt(last[0]),
                                     Integer.parseInt(last[1]),
                                     Integer.parseInt(last[2]),
-                                    Integer.parseInt(last[3])
-                                    );
+                                    Integer.parseInt(last[3]));
+
                             if (!getReceiveOrder().contains(rOrder)) {
                                 addReceiveOrder(rOrder);
-                                //System.out.println(getProductionOrder().get(getProductionOrder().size())-1);
+                                //System.out.println(getProductionOrder().get(getProductionOrder().size() - 1));
                             }
                         }
                     }
@@ -180,13 +180,27 @@ public class MES {
                     break;
                 }
                 case 2:
-                    getProductionOrder().removeAll(getProductionOrder());
+                    //getProductionOrder().removeAll(getProductionOrder());
 
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
                             String last[] = str_tok.split("@", -2);
                             //System.out.println(last[0] + " || " + last[1]);
-                            productionOrder pOrder = new productionOrder(Integer.parseInt(last[0]), Integer.parseInt(last[1]));
+                            productionOrder pOrder = new productionOrder(
+                                    Integer.parseInt(last[0]),
+                                    Integer.parseInt(last[1]),
+                                    Integer.parseInt(last[2]),
+                                    Integer.parseInt(last[3]));
+                            int k = 0;
+                            ArrayList<rawMaterial> rawMaterials = new ArrayList<>();
+                            while (k < Integer.parseInt(last[4])) {
+                                rawMaterials.add(new rawMaterial(
+                                        Integer.parseInt(last[5 + k]),
+                                        Integer.parseInt(last[6 + k])));
+                                k++;
+                            }
+                            pOrder.setRawMaterials(rawMaterials);
+
                             if (!getProductionOrder().contains(pOrder)) {
                                 addProductionOrder(pOrder);
                             }
@@ -195,13 +209,16 @@ public class MES {
                     i++;
                     break;
                 case 3:
-                    getShippingOrder().removeAll(getShippingOrder());
+                    //getShippingOrder().removeAll(getShippingOrder());
 
                     for (String str_tok : str) {
                         if (!str_tok.isEmpty()) {
                             String last[] = str_tok.split("@", -2);
                             //System.out.println(last[0] + " || " + last[1]);
-                            shippingOrder sOrder = new shippingOrder(Integer.parseInt(last[0]), Integer.parseInt(last[1]));
+                            shippingOrder sOrder = new shippingOrder(
+                                    Integer.parseInt(last[0]),
+                                    Integer.parseInt(last[1]),
+                                    Integer.parseInt(last[2]));
                             if (!getShippingOrder().contains(sOrder)) {
                                 addShippingOrder(sOrder);
 
@@ -219,7 +236,6 @@ public class MES {
 
 
     }
-
 
 
     // ******** VIEW METHODS *********

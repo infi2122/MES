@@ -84,28 +84,23 @@ public class MES_Viewer {
 
     public void showInternalOrders(ArrayList<receiveOrder> recv, ArrayList<productionOrder> prod, ArrayList<shippingOrder> ship) {
         System.out.println("***** Internal Orders aka MES vectors *****");
-        System.out.println("**** Unload Orders ****");
+        System.out.println("**** Raw Material Orders ****");
 
-        if(recv.size()!=0){
-           for (receiveOrder curr:recv){
-               System.out.println("production ID: " + curr.getOrderID() + " starts on day: " + curr.getStartDate() +
-               " Piece to produce: " + curr.getPieceType() + "Quantity: " + curr.getReservedQty());
-           }
+        for (receiveOrder curr : recv) {
+            System.out.println("*** rawMaterial ID: " + curr.getRawMaterialOrderID()+ " arrives on day: " + curr.getArrivalDate() +
+                    " Type: " + curr.getPieceType() + " Quantity: " + curr.getQty() +" ***");
+
         }
+
         System.out.println("\n**** Production Orders ****");
-        if(prod.size()!=0){
-            for (productionOrder curr:prod){
-                System.out.println("production ID: " + curr.getOrderID() + " starts on day: " + curr.getStartDate());
-            }
+        for (productionOrder curr : prod) {
+            System.out.println("manufacuringID: " + curr.getManufacturingID() + " of type: " + curr.getFinalType() + " starts on day: " + curr.getStartDate());
         }
+
         System.out.println("\n**** Shipping Orders ****");
-        if (ship.size() != 0) {
-            for (shippingOrder curr:ship){
-                System.out.println("production ID: " + curr.getOrderID() + " starts on day: " + curr.getStartDate());
-            }
+        for (shippingOrder curr : ship) {
+            System.out.println("manufacuringID: " + curr.getManufacturingID() + " starts on day: " + curr.getStartDate());
         }
-
-
-        }
+    }
 
 }

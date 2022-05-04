@@ -2,40 +2,46 @@ package Models;
 
 import java.util.ArrayList;
 
-public class productionOrder{
+public class productionOrder {
 
-    private int manufactID;
+    private int manufacturingID;
+    private int finalType;
+    private int startDate;
     private int qty;
-    private int final_type;
-    private ArrayList<rawMaterial> rawMaterials = new ArrayList<>();
-    private int start_time;
+    private ArrayList<rawMaterial> rawMaterials;
+
     private int pieces_in_sfs;
     private int pieces_done;
 
 
-    public productionOrder(int manufactID, int qty, int final_type, ArrayList<rawMaterial> rawMaterials, int start_time) {
-        this.manufactID = manufactID;
+    public productionOrder(int manufactID, int final_type, int start_time, int qty) {
+        this.manufacturingID = manufactID;
         this.qty = qty;
-        this.final_type = final_type;
-        this.rawMaterials = rawMaterials;
-        this.start_time = start_time;
+        this.finalType = final_type;
+        this.startDate = start_time;
     }
 
-    public int getManufactID() {
-        return manufactID;
+    public int getManufacturingID() {
+        return manufacturingID;
     }
     public int getQty() {
         return qty;
     }
-    public int getFinal_type() {
-        return final_type;
+    public int getFinalType() {
+        return finalType;
     }
     public ArrayList<rawMaterial> getRawMaterials() {
         return rawMaterials;
     }
-    public int getStart_time() {
-        return start_time;
+
+    public void setRawMaterials(ArrayList<rawMaterial> rawMaterials) {
+        this.rawMaterials = new ArrayList<>(rawMaterials);
     }
+
+    public int getStartDate() {
+        return startDate;
+    }
+
     public int getPieces_in_sfs() {
         return pieces_in_sfs;
     }

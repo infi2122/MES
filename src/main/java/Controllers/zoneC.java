@@ -1,7 +1,6 @@
 package Controllers;
 import Models.productionOrder;
 import Models.piece;
-import Models.receiveOrder;
 
 import java.util.ArrayList;
 
@@ -42,7 +41,7 @@ public class zoneC extends Thread{
             //filtrar encomenda com maior quantidade
             if( currentPO_entry_wh == null || currentPO_entry_wh.getQty() == currentPO_entry_wh.getPieces_in_sfs() ) {
                 for (productionOrder curr : mes.getProductionOrder() ) {
-                    if( curr.getStart_time() <= mes.getCurrentTime()/60  && curr.getQty()>curr.getPieces_in_sfs() ){
+                    if( curr.getStartDate() <= mes.getCurrentTime()/60  && curr.getQty()>curr.getPieces_in_sfs() ){
 
                         //primeira iteração
                         if(currentPO_entry_wh==null) currentPO_entry_wh = curr;
@@ -55,7 +54,7 @@ public class zoneC extends Thread{
 
             //production order encontrada,
             //enquanto as peças nao estiverem todas dentro do armazem, retira mais peças
-            if( )
+
             if( currentPO_entry_wh.getQty() > currentPO_entry_wh.getPieces_in_sfs() ){
 
 

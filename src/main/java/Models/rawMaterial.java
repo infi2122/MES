@@ -10,4 +10,11 @@ public class rawMaterial {
         this.qty_used = qty_used;
     }
 
+    public int getRawMaterialID() {
+        return rawMaterialID;
+    }
+
+    public int getQty_used() {
+        return qty_used;
+    }
 }

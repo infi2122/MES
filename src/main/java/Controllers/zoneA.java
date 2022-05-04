@@ -90,7 +90,7 @@ public class zoneA extends Thread {
         long currDay = mes.getCurrentTime();
 
         for (receiveOrder curr : mes.getReceiveOrder()) {
-            if (curr.getStartDate() == currDay / 60) {
+            if (curr.getArrivalDate() == currDay / 60) {
                 int currPieceType = curr.getPieceType();
                 if (currPieceType == 6 || currPieceType == 8) {
                     setRecvType1(true);
@@ -121,12 +121,12 @@ public class zoneA extends Thread {
         boolean sensor = mes.getOpcClient().readBool("W1in0_sensor", "IO");
         System.out.println("Sensor TP3: " + sensor);
 
-        if (piece_counter < curr_receiveOrder.getReservedQty()) {
+        if (piece_counter < curr_receiveOrder.getQty()) {
 
             if (sensor && !old_sensor) {
 
-                piece newPiece = new piece(global_piece_cnt_for_id, curr_receiveOrder.getOrderID(), curr_receiveOrder.getStartDate() * one_day);
-                if (curr_receiveOrder.getOrderID() != -1) {
+                piece newPiece = new piece(global_piece_cnt_for_id, curr_receiveOrder.getRawMaterialOrderID(), curr_receiveOrder.getArrivalDate() * one_day);
+                if (curr_receiveOrder.getRawMaterialOrderID() != -1) {
                     newPiece.setExpectedType(curr_receiveOrder.getPieceType());
                 }
                 if (!mes.getEntryWH().getPieces().contains(newPiece)) {
@@ -143,7 +143,7 @@ public class zoneA extends Thread {
             mes.getReceiveOrder().remove(curr_receiveOrder);
             curr_receiveOrder = null;
         }
-        System.out.println("Piece counter: " + piece_counter + " Curr QTY: " +curr_receiveOrder.getReservedQty() );
+        System.out.println("Piece counter: " + piece_counter + " Curr QTY: " +curr_receiveOrder.getQty() );
         old_sensor = sensor;
     }
 

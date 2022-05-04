@@ -1,8 +1,26 @@
 package Models;
 
-public class shippingOrder extends internalOrders{
+public class shippingOrder {
 
-    public shippingOrder(int orderID, int startDate) {
-        super(orderID, startDate);
+    private int manufacturingID;
+    private int startDate;
+    private int qty;
+
+    public shippingOrder(int manufacturingID, int startDate, int qty) {
+        this.manufacturingID = manufacturingID;
+        this.startDate = startDate;
+        this.qty = qty;
+    }
+
+    public int getManufacturingID() {
+        return manufacturingID;
+    }
+
+    public int getStartDate() {
+        return startDate;
+    }
+
+    public int getQty() {
+        return qty;
     }
 }

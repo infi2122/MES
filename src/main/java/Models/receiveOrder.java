@@ -1,26 +1,32 @@
 package Models;
 
-public class receiveOrder extends internalOrders{
+public class receiveOrder {
 
+    private int rawMaterialOrderID;
     private int pieceType;
-    private int reservedQty;
+    private int arrivalDate;
+    private int qty;
 
+    public receiveOrder(int rawMaterialOrderID, int pieceType, int arrivalDate, int qty) {
+        this.rawMaterialOrderID = rawMaterialOrderID;
+        this.pieceType = pieceType;
+        this.arrivalDate = arrivalDate;
+        this.qty = qty;
+    }
 
-    public receiveOrder(int orderID, int startDate, int type, int resQty) {
-        super(orderID, startDate);
-        this.pieceType = type;
-        this.reservedQty = resQty;
-
+    public int getRawMaterialOrderID() {
+        return rawMaterialOrderID;
     }
 
     public int getPieceType() {
         return pieceType;
     }
 
-    public int getReservedQty() {
-        return reservedQty;
+    public int getArrivalDate() {
+        return arrivalDate;
     }
 
-
-
+    public int getQty() {
+        return qty;
+    }
 }
