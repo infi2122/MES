@@ -131,8 +131,6 @@ public class MES {
             }
 
         }
-
-
     }
 
     public void receiveInternalOrders() {
@@ -233,6 +231,32 @@ public class MES {
             }
 
         }
+
+
+    }
+
+    public void testMES (){
+
+        setCurrentTime(System.currentTimeMillis());
+
+        addReceiveOrder(new receiveOrder(
+                0,
+                9,
+                2,
+                5
+        ));
+        addReceiveOrder(new receiveOrder(
+                1,
+                8,
+                3,
+                4
+        ));
+        addReceiveOrder(new receiveOrder(
+                3,
+                5,
+                4,
+                16
+        ));
 
 
     }

@@ -1,6 +1,7 @@
 import Controllers.MES;
 import Controllers.zoneA;
 import Controllers.zoneC;
+import Models.receiveOrder;
 import OPC_UA.opcConnection;
 import UDP.ERPtunnel;
 import Viewers.MES_Viewer;
@@ -11,28 +12,30 @@ import java.util.concurrent.TimeUnit;
 
 public class App {
 
+
+
     public static void main(String args[]) {
 
         MES mes = new MES(new MES_Viewer());
 
-        ERPtunnel ERP2tcp = new ERPtunnel();
-        ERP2tcp.openConnection();
+        mes.testMES();
+//        ERPtunnel ERP2tcp = new ERPtunnel();
+//        ERP2tcp.openConnection();
 
         /* For synchronize time in ERP and MES */
-        mes.setErp2MesTunnel(ERP2tcp);
-        mes.setStartTime();
+//        mes.setErp2MesTunnel(ERP2tcp);
+//        mes.setStartTime();
         /* *************************************** */
 
 //        opcConnection opcConnection = new opcConnection();
-//
 //        opcConnection.createOPCconnection();
 //        mes.setOpcClient(opcConnection);
 
         ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(3);
         schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
-        //schedulerERP.scheduleAtFixedRate(new zoneA(mes),0, 1, TimeUnit.SECONDS);
-        //schedulerERP.scheduleAtFixedRate(new zoneC(mes),0, 1, TimeUnit.SECONDS);
+//        schedulerERP.scheduleAtFixedRate(new zoneA(mes),0, 1, TimeUnit.SECONDS);
+//        schedulerERP.scheduleAtFixedRate(new zoneC(mes),0, 1, TimeUnit.SECONDS);
 
     }
 
@@ -46,11 +49,9 @@ public class App {
 
         @Override
         public void run() {
-
             synchronized (mes) {
-                mes.receiveInternalOrders();
+                //mes.receiveInternalOrders();
                 mes.displayInternalOrders();
-
             }
         }
 
@@ -71,4 +72,7 @@ public class App {
             }
         }
     }
+
+
+
 }

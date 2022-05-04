@@ -11,15 +11,14 @@ public class zoneA extends Thread {
     // NAO ESQUECER DE DAR RESET ALGURES
     private boolean recvType1 = false;
     private boolean recvType2 = false;
+    private boolean WH_full = false;
 
     private int piece_counter = 0;
     private int global_piece_cnt_for_id=0;
-    private boolean WH_full = false;
+
     private boolean old_sensor = false;
     private final int one_day = 60;
-    /**
-     * PRECISO SABER A QUANTIDADE DE PEÇAS A RECEBER, E A QUANTIDADE DE PEÇAS RESERVADAS A CADA ENCOMENDA
-     */
+
     private receiveOrder curr_receiveOrder;
 
     /* ********************************************************************************** */
@@ -55,9 +54,13 @@ public class zoneA extends Thread {
     }
 
     public void setWH_full(boolean WH_full) {
+        if (WH_full)
+            mes.getOpcClient().writeBool("wh1_full", "GVL", 1);
+        else
+            mes.getOpcClient().writeBool("w1_full", "GVL", 0);
+
         this.WH_full = WH_full;
     }
-
 
     private MES mes;
 
@@ -87,10 +90,10 @@ public class zoneA extends Thread {
      */
     public receiveOrder setRecvType() {
 
-        long currDay = mes.getCurrentTime();
+        long currTime = mes.getCurrentTime();
 
         for (receiveOrder curr : mes.getReceiveOrder()) {
-            if (curr.getArrivalDate() == currDay / 60) {
+            if (curr.getArrivalDate() == currTime / 60) {
                 int currPieceType = curr.getPieceType();
                 if (currPieceType == 6 || currPieceType == 8) {
                     setRecvType1(true);
