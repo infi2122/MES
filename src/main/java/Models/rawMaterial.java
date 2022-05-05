@@ -17,4 +17,8 @@ public class rawMaterial {
     public int getQty_used() {
         return qty_used;
     }
+
+    public void setQty_used(int qty_used) {
+        this.qty_used = qty_used;
+    }
 }

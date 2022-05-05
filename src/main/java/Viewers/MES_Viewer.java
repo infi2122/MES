@@ -1,8 +1,6 @@
 package Viewers;
 
-import Models.productionOrder;
-import Models.receiveOrder;
-import Models.shippingOrder;
+import Models.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,8 +13,8 @@ public class MES_Viewer {
         System.out.println("**** Raw Material Orders ****");
 
         for (receiveOrder curr : recv) {
-            System.out.println("*** rawMaterial ID: " + curr.getRawMaterialOrderID()+ " arrives on day: " + curr.getArrivalDate() +
-                    " Type: " + curr.getPieceType() + " Quantity: " + curr.getQty() +" ***");
+            System.out.println("*** rawMaterial ID: " + curr.getRawMaterialOrderID() + " arrives on day: " + curr.getArrivalDate() +
+                    " Type: " + curr.getPieceType() + " Quantity: " + curr.getQty() + " ***");
 
         }
 
@@ -29,6 +27,16 @@ public class MES_Viewer {
         for (shippingOrder curr : ship) {
             System.out.println("manufacuringID: " + curr.getManufacturingID() + " starts on day: " + curr.getStartDate());
         }
+    }
+
+    public void showEntryWH(entryWarehouse entryWH) {
+
+        System.out.println("***** Entry Warehouse *****");
+
+        for (piece curr : entryWH.getPieces()) {
+            System.out.println("rawMaterial ID: " + curr.getRawMaterialID() + " piece ID:" + curr.getPieceID() + " arrived on day: " + curr.getWHarrival());
+        }
+
     }
 
 }

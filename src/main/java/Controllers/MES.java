@@ -38,6 +38,10 @@ public class MES {
 
     }
 
+    public int getCountdays() {
+        return countdays;
+    }
+
     public void setErp2MesTunnel(ERPtunnel tunnel) {
         erp2mesTunnel = tunnel;
     }
@@ -54,10 +58,14 @@ public class MES {
         this.opcClient = opcClient;
     }
 
-    public void setStartTime() {
-        long init = getErp2mesTunnel().initTimer();
-        if (init != -1)
-            startTime = init;
+    public void setStartTime(long start, boolean state) {
+        if (state)
+            startTime = start;
+        else {
+            long init = getErp2mesTunnel().initTimer();
+            if (init != -1)
+                startTime = init;
+        }
     }
 
     public long getCurrentTime() {
@@ -129,7 +137,6 @@ public class MES {
                 countdays = (int) getCurrentTime() / oneDay;
                 System.out.println("Current Day: " + countdays);
             }
-
         }
     }
 
@@ -235,37 +242,74 @@ public class MES {
 
     }
 
-    public void testMES (){
+    public void testMES_zonaA() {
 
-        setCurrentTime(System.currentTimeMillis());
+        setStartTime(System.currentTimeMillis(), true);
 
         addReceiveOrder(new receiveOrder(
                 0,
-                9,
                 2,
+                1,
                 5
         ));
         addReceiveOrder(new receiveOrder(
                 1,
-                8,
-                3,
+                1,
+                1,
                 4
         ));
         addReceiveOrder(new receiveOrder(
                 3,
-                5,
-                4,
+                2,
+                2,
                 16
         ));
 
 
     }
 
+    public void testMES_zonaC() {
+
+        setStartTime(System.currentTimeMillis(), true);
+        int rawMaterialID = 0;
+        for (int i = 0; i < 10; i++) {
+
+            if (i == 5)
+                rawMaterialID++;
+
+            addPiece2entryWH(new piece(
+                    i,
+                    rawMaterialID,
+                    1
+            ));
+
+        }
+
+        productionOrder pOrder = new productionOrder(0, 4, 3, 3);
+        ArrayList<rawMaterial> raw = new ArrayList<>();
+        raw.add(new rawMaterial(0, 3));
+        pOrder.setRawMaterials(raw);
+
+        addProductionOrder(pOrder);
+
+        productionOrder pOrder2 = new productionOrder(1, 5 , 3, 5);
+        ArrayList<rawMaterial> raw2 = new ArrayList<>();
+        raw2.add(new rawMaterial(1, 5));
+        pOrder.setRawMaterials(raw2);
+
+        addProductionOrder(pOrder2);
+
+
+    }
 
     // ******** VIEW METHODS *********
 
     public void displayInternalOrders() {
         getMes_viewer().showInternalOrders(getReceiveOrder(), getProductionOrder(), getShippingOrder());
+    }
+
+    public void displayEntryWH() {
+        getMes_viewer().showEntryWH(getEntryWH());
     }
 
 

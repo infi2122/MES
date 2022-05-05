@@ -2,9 +2,6 @@ package Controllers;
 
 import Models.piece;
 import Models.receiveOrder;
-import Models.warehouse;
-
-import java.util.ArrayList;
 
 public class zoneA extends Thread {
 
@@ -13,13 +10,20 @@ public class zoneA extends Thread {
     private boolean recvType2 = false;
     private boolean WH_full = false;
 
-    private int piece_counter = 0;
-    private int global_piece_cnt_for_id=0;
+    private int global_piece_cnt_for_id = 0;
 
-    private boolean old_sensor = false;
     private final int one_day = 60;
 
     private receiveOrder curr_receiveOrder;
+    private piece convP1 = null;
+    private piece convP2 = null;
+    private piece convLoad0 = null;
+    private piece convWH = null;
+
+    private boolean oldConvP1_sensor = false;
+    private boolean oldConvP2_sensor = false;
+    private boolean oldLoad0_sensor = false;
+    private boolean oldConvWH_sensor = false;
 
     /* ********************************************************************************** */
     // NOS SET posso enviar para o OPC os valores, porque em cada set é para alterar os booleans
@@ -55,9 +59,9 @@ public class zoneA extends Thread {
 
     public void setWH_full(boolean WH_full) {
         if (WH_full)
-            mes.getOpcClient().writeBool("wh1_full", "GVL", 1);
+            mes.getOpcClient().writeBool("wh_full", "GVL", 1);
         else
-            mes.getOpcClient().writeBool("w1_full", "GVL", 0);
+            mes.getOpcClient().writeBool("wh_full", "GVL", 0);
 
         this.WH_full = WH_full;
     }
@@ -72,14 +76,18 @@ public class zoneA extends Thread {
     public void run() {
 
         synchronized (mes) {
+
+            // Verificar so RE dos tapetes de entrada
+            //    Se sim, entao criar nova instancia de p1 e p2
+            // No RE do Load 0 passa a peça de p1 ou p2 para o tapete rotativo para nao ser perdida a info
+            detectEntryConveyor();
+
             if (!entryWH_isFull()) {
-                System.out.println("Prioridade 1: " + isRecvType1() + " Prioridade 2: " + isRecvType2());
-                if ( !isRecvType1() && !isRecvType2() ) {
+                if (!isRecvType1() && !isRecvType2()) {
                     curr_receiveOrder = setRecvType();
                 }
                 if (curr_receiveOrder != null) {
-                    System.out.println("Diferente de NULL");
-                    entryCarpet();
+                    entry2WH();
                 }
             }
         }
@@ -93,14 +101,14 @@ public class zoneA extends Thread {
         long currTime = mes.getCurrentTime();
 
         for (receiveOrder curr : mes.getReceiveOrder()) {
-            if (curr.getArrivalDate() == currTime / 60) {
+            if (curr.getArrivalDate() <= currTime / one_day && curr.getQty() > 0) {
                 int currPieceType = curr.getPieceType();
-                if (currPieceType == 6 || currPieceType == 8) {
+                if (currPieceType == 1) {
                     setRecvType1(true);
                     System.out.println("RECV Type 1");
                 } else {
                     setRecvType2(true);
-                    System.out.println("RECV Type 2");
+                   System.out.println("RECV Type 2");
                 }
                 return curr;
             }
@@ -112,42 +120,75 @@ public class zoneA extends Thread {
 
         if (mes.getEntryWH().getPieces().size() == mes.getEntryWH().getMAXIMUM_CAPACITY()) {
             setWH_full(true);
-            mes.getOpcClient().writeInt("wh_entry_full", "GVL", 1);
             return true;
         }
-        mes.getOpcClient().writeInt("wh_entry_full", "GVL", 0);
+        setWH_full(false);
         return false;
     }
 
-    public void entryCarpet() {
+    public void entry2WH() {
 
-        boolean sensor = mes.getOpcClient().readBool("W1in0_sensor", "IO");
-        System.out.println("Sensor TP3: " + sensor);
+        boolean convWH_sensor = mes.getOpcClient().readBool("W1in0_sensor", "IO");
+        if (curr_receiveOrder.getQty() > 0) {
 
-        if (piece_counter < curr_receiveOrder.getQty()) {
+            if (convWH_sensor && !oldConvWH_sensor) {
+                convWH = convLoad0;
+                mes.addPiece2entryWH(convWH);
+                curr_receiveOrder.setQty(curr_receiveOrder.getQty() - 1);
+//                mes.displayEntryWH();
 
-            if (sensor && !old_sensor) {
-
-                piece newPiece = new piece(global_piece_cnt_for_id, curr_receiveOrder.getRawMaterialOrderID(), curr_receiveOrder.getArrivalDate() * one_day);
-                if (curr_receiveOrder.getRawMaterialOrderID() != -1) {
-                    newPiece.setExpectedType(curr_receiveOrder.getPieceType());
-                }
-                if (!mes.getEntryWH().getPieces().contains(newPiece)) {
-                    mes.addPiece2entryWH(newPiece);
-                    piece_counter++;
-                    global_piece_cnt_for_id++;
-
-                }
             }
-        } else {
-            piece_counter=0;
+        }
+        if(curr_receiveOrder.getQty() == 0 ){
             setRecvType1(false);
             setRecvType2(false);
-            mes.getReceiveOrder().remove(curr_receiveOrder);
             curr_receiveOrder = null;
         }
-        System.out.println("Piece counter: " + piece_counter + " Curr QTY: " +curr_receiveOrder.getQty() );
-        old_sensor = sensor;
+
+        oldConvWH_sensor = convWH_sensor;
+    }
+
+    public void detectEntryConveyor() {
+
+        boolean convP1_sensor = mes.getOpcClient().readBool("Load1_sensor", "IO");
+        boolean convP2_sensor = mes.getOpcClient().readBool("Load2_sensor", "IO");
+        boolean load0_sensor = mes.getOpcClient().readBool("Load0_sensor","IO");
+
+        // RE de convLoad_0
+        if (!oldLoad0_sensor && load0_sensor) {
+            if (isRecvType1()) {
+                convLoad0 = new piece(
+                        convP1.getPieceID(),
+                        curr_receiveOrder.getRawMaterialOrderID(),
+                        convP1.getWHarrival()
+                        );
+                convP1 = null;
+            }
+            if (isRecvType2()) {
+                convLoad0 = new piece(
+                        convP2.getPieceID(),
+                        curr_receiveOrder.getRawMaterialOrderID(),
+                        convP2.getWHarrival()
+                );
+                convP2 = null;
+            }
+        }
+
+        // RE de convP1
+        if (!oldConvP1_sensor && convP1_sensor) {
+            convP1 = new piece(global_piece_cnt_for_id, (int) mes.getCurrentTime() / 60);
+            global_piece_cnt_for_id++;
+        }
+
+        // RE de convP2
+        if (!oldConvP2_sensor && convP2_sensor) {
+            convP2 = new piece(global_piece_cnt_for_id, (int) mes.getCurrentTime() / 60);
+            global_piece_cnt_for_id++;
+        }
+        oldConvP1_sensor = convP1_sensor;
+        oldConvP2_sensor = convP2_sensor;
+        oldLoad0_sensor = load0_sensor;
+
     }
 
 

@@ -7,15 +7,42 @@ public class piece {
     private int orderID;
     private int expectedType;
     private int WHarrival;
-    private int productionStart;
-    private int productionEnd;
+    private long productionStart;
+    private long productionEnd;
     private int shippingStart;
     private int shippingEnd;
+
+    public piece(int pieceID, int WHarrival){
+        this.pieceID = pieceID;
+        this.WHarrival = WHarrival;
+    }
 
     public piece(int pieceID, int rawMaterialID, int WHarrival) {
         this.pieceID = pieceID;
         this.rawMaterialID = rawMaterialID;
         this.WHarrival = WHarrival;
+    }
+
+    public piece(piece convP2) {
+        this.pieceID = convP2.pieceID;
+        this.WHarrival = convP2.WHarrival;
+    }
+
+
+    public int getPieceID() {
+        return pieceID;
+    }
+
+    public void setPieceID(int pieceID) {
+        this.pieceID = pieceID;
+    }
+
+    public int getRawMaterialID() {
+        return rawMaterialID;
+    }
+
+    public void setRawMaterialID(int rawMaterialID) {
+        this.rawMaterialID = rawMaterialID;
     }
 
     public int getOrderID() {
@@ -42,19 +69,19 @@ public class piece {
         this.WHarrival = WHarrival;
     }
 
-    public int getProductionStart() {
+    public long getProductionStart() {
         return productionStart;
     }
 
-    public void setProductionStart(int productionStart) {
+    public void setProductionStart(long productionStart) {
         this.productionStart = productionStart;
     }
 
-    public int getProductionEnd() {
+    public long getProductionEnd() {
         return productionEnd;
     }
 
-    public void setProductionEnd(int productionEnd) {
+    public void setProductionEnd(long productionEnd) {
         this.productionEnd = productionEnd;
     }
 
@@ -73,6 +100,4 @@ public class piece {
     public void setShippingEnd(int shippingEnd) {
         this.shippingEnd = shippingEnd;
     }
-
-
 }
