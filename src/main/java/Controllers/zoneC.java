@@ -5,6 +5,7 @@ import Models.productionOrder;
 import Models.rawMaterial;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class zoneC<MCT_table> extends Thread {
 
@@ -94,13 +95,16 @@ public class zoneC<MCT_table> extends Thread {
         int currDay = mes.getCountdays();
 
         if (i < mes.getProductionOrder().size()) {
+
             productionOrder currProdOrder = mes.getProductionOrder().get(i);
 
             if (currProdOrder.getStartDate() <= currDay) {
+
                 if (piecesOnFloor.size() < MAXIMUM_CAPACITY && mes.getOpcClient().readBool("W1in1_free", "GVL")) {
                     for (rawMaterial curr : currProdOrder.getRawMaterials()) {
 
                         if (curr.getQty_used() > 0) {
+                            System.out.println("Raw Material id: "+ curr.getRawMaterialID() );
                             piece newPieceOnFloor = searchPieceInEntryWH(curr.getRawMaterialID());
 
                             newPieceOnFloor.setOrderID(currProdOrder.getManufacturingID());
@@ -113,9 +117,14 @@ public class zoneC<MCT_table> extends Thread {
                             System.out.println("manufacturingID: " + newPieceOnFloor.getOrderID() + " tipo atual: " + transformations[0]
                                     + " T1: " + transformations[1] + " T2: " + transformations[2] + " T3: " + transformations[3]
                                     + " piece ID: " + newPieceOnFloor.getPieceID() + " rawMaterialID: " + newPieceOnFloor.getRawMaterialID());
+
+
+                            mes.getOpcClient().writeBool("W1in1_free", "GVL", 0);
+
+                            i++;
+                            break;
                         }
-                        i++;
-                        break;
+
                     }
                 }
             }
@@ -130,14 +139,29 @@ public class zoneC<MCT_table> extends Thread {
 
         piece returnPiece = null;
 
-        for (piece currPiece : mes.getEntryWH().getPieces()) {
-            if (currPiece.getRawMaterialID() == rawMaterialID) {
-                returnPiece = new piece(currPiece);
+        ArrayList <piece> list = mes.getEntryWH().getPieces();
+        Iterator<piece> iterador = list.iterator();
+
+        while( iterador.hasNext() ){
+            piece temp = iterador.next();
+            if (temp.getRawMaterialID() == rawMaterialID) {
+                returnPiece = new piece(temp);
                 returnPiece.setRawMaterialID(rawMaterialID);
-                mes.getEntryWH().getPieces().remove(currPiece);
+                iterador.remove();
+                System.out.println("fds"+returnPiece.getPieceID());
                 break;
             }
         }
+//        for (piece currPiece : mes.getEntryWH().getPieces()) {
+//            if (currPiece.getRawMaterialID() == rawMaterialID) {
+//                returnPiece = new piece(currPiece);
+//                returnPiece.setRawMaterialID(rawMaterialID);
+//                mes.getEntryWH().getPieces().remove(currPiece);
+//                break;
+//            }
+//        }
+
+
         return returnPiece;
 
     }

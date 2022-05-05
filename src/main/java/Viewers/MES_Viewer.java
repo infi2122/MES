@@ -20,7 +20,12 @@ public class MES_Viewer {
 
         System.out.println("\n**** Production Orders ****");
         for (productionOrder curr : prod) {
-            System.out.println("manufacuringID: " + curr.getManufacturingID() + " of type: " + curr.getFinalType() + " starts on day: " + curr.getStartDate());
+            System.out.println("manufacuringID: " + curr.getManufacturingID()
+                    + " of type: " + curr.getFinalType()
+                    + " starts on day: " + curr.getStartDate());
+            for(rawMaterial cur2: curr.getRawMaterials() ){
+                System.out.println("RawID: "+cur2.getRawMaterialID() +" Qty used: "+ cur2.getQty_used() );
+            }
         }
 
         System.out.println("\n**** Shipping Orders ****");

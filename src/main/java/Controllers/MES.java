@@ -295,7 +295,7 @@ public class MES {
         productionOrder pOrder2 = new productionOrder(1, 5 , 3, 5);
         ArrayList<rawMaterial> raw2 = new ArrayList<>();
         raw2.add(new rawMaterial(1, 5));
-        pOrder.setRawMaterials(raw2);
+        pOrder2.setRawMaterials(raw2);
 
         addProductionOrder(pOrder2);
 
