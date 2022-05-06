@@ -11,7 +11,6 @@ public class zoneC<MCT_table> extends Thread {
 
     private ArrayList<piece> piecesOnFloor = new ArrayList<>();
     private final int MAXIMUM_CAPACITY = 6;
-
     private static int oneDay = 60;
 
     private MES mes;
@@ -104,7 +103,7 @@ public class zoneC<MCT_table> extends Thread {
                     for (rawMaterial curr : currProdOrder.getRawMaterials()) {
 
                         if (curr.getQty_used() > 0) {
-                            System.out.println("Raw Material id: "+ curr.getRawMaterialID() );
+                            System.out.println("Raw Material id: " + curr.getRawMaterialID());
                             piece newPieceOnFloor = searchPieceInEntryWH(curr.getRawMaterialID());
 
                             newPieceOnFloor.setOrderID(currProdOrder.getManufacturingID());
@@ -114,12 +113,19 @@ public class zoneC<MCT_table> extends Thread {
                             //  int[] transformations = [actualType, T1, T2, T3]
                             int[] transformations = getTransformations(newPieceOnFloor.getExpectedType());
                             curr.setQty_used(curr.getQty_used() - 1);
-                            System.out.println("manufacturingID: " + newPieceOnFloor.getOrderID() + " tipo atual: " + transformations[0]
-                                    + " T1: " + transformations[1] + " T2: " + transformations[2] + " T3: " + transformations[3]
-                                    + " piece ID: " + newPieceOnFloor.getPieceID() + " rawMaterialID: " + newPieceOnFloor.getRawMaterialID());
 
+//                            System.out.println("manufacturingID: " + newPieceOnFloor.getOrderID() + " tipo atual: " + transformations[0]
+//                                    + " T1: " + transformations[1] + " T2: " + transformations[2] + " T3: " + transformations[3]
+//                                    + " piece ID: " + newPieceOnFloor.getPieceID() + " rawMaterialID: " + newPieceOnFloor.getRawMaterialID());
 
-                            mes.getOpcClient().writeBool("W1in1_free", "GVL", 0);
+                            send_piece_code_to_opcua(
+                                    newPieceOnFloor.getOrderID(),
+                                    transformations[0],
+                                    transformations[1],
+                                    transformations[2],
+                                    transformations[3],
+                                    newPieceOnFloor.getPieceID());
+
 
                             i++;
                             break;
@@ -139,30 +145,35 @@ public class zoneC<MCT_table> extends Thread {
 
         piece returnPiece = null;
 
-        ArrayList <piece> list = mes.getEntryWH().getPieces();
+        ArrayList<piece> list = mes.getEntryWH().getPieces();
         Iterator<piece> iterador = list.iterator();
 
-        while( iterador.hasNext() ){
+        while (iterador.hasNext()) {
             piece temp = iterador.next();
             if (temp.getRawMaterialID() == rawMaterialID) {
                 returnPiece = new piece(temp);
                 returnPiece.setRawMaterialID(rawMaterialID);
                 iterador.remove();
-                System.out.println("fds"+returnPiece.getPieceID());
+                System.out.println("fds" + returnPiece.getPieceID());
                 break;
             }
         }
-//        for (piece currPiece : mes.getEntryWH().getPieces()) {
-//            if (currPiece.getRawMaterialID() == rawMaterialID) {
-//                returnPiece = new piece(currPiece);
-//                returnPiece.setRawMaterialID(rawMaterialID);
-//                mes.getEntryWH().getPieces().remove(currPiece);
-//                break;
-//            }
-//        }
-
 
         return returnPiece;
+
+    }
+
+    private void send_piece_code_to_opcua(int orderID, int curr_type, int T1, int T2, int T3, int pieceID) {
+        mes.getOpcClient().writeInt("id_encomenda", "GVL", orderID);
+        mes.getOpcClient().writeInt("tipo_atual", "GVL", curr_type);
+        mes.getOpcClient().writeInt("T1", "GVL", T1);
+        mes.getOpcClient().writeInt("T2", "GVL", T2);
+        mes.getOpcClient().writeInt("T3", "GVL", T3);
+        mes.getOpcClient().writeInt("id_peca", "GVL", pieceID);
+
+        mes.getOpcClient().writeInt("wh_entry_r1", "GVL", curr_type);
+        mes.getOpcClient().writeBool("W1in1_free", "GVL", 0);
+
 
     }
 
