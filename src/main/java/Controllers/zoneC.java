@@ -44,8 +44,7 @@ public class zoneC<MCT_table> extends Thread {
                                 + " piece id " + curr.getPieceID()
                 );
             }
-
-            System.out.println(" piece on floor size: "+piecesOnFloor.size() );
+            System.out.println("-------------------------");
         }
     }
 
@@ -84,7 +83,11 @@ public class zoneC<MCT_table> extends Thread {
             }
             // Porque o vetor MCT_table tem as P3 na pos 0
             type = type - 3;
-            setMCT(MCT_table[type]);
+            if (type > 0) {
+                //NAO ACREDITO QUE ERA ISTO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa
+                setMCT(MCT_table[type]);
+            }
+
         }
 
     }
@@ -105,15 +108,20 @@ public class zoneC<MCT_table> extends Thread {
 
         int currDay = mes.getCountdays();
 
+        // Percorre todas as production orders
         if (i < mes.getProductionOrder().size()) {
 
             productionOrder currProdOrder = mes.getProductionOrder().get(i);
 
+            // Seleciona as production orders do dia atual e anteriores, se houverem
             if (currProdOrder.getStartDate() <= currDay) {
 
+                // Cabem peças na zona C e o tapete W1in1 está livre
                 if (!is_zoneC_full() && is_W1in1_free()) {
+                    System.out.println("------------HELLO-----------");
                     for (rawMaterial curr : currProdOrder.getRawMaterials()) {
 
+                        // Se a production order necessitar do raw material
                         if (curr.getQty_used() > 0) {
                             System.out.println("Raw Material id: " + curr.getRawMaterialID());
                             piece newPieceOnFloor = searchPieceInEntryWH(curr.getRawMaterialID());
@@ -130,6 +138,7 @@ public class zoneC<MCT_table> extends Thread {
 //                                    + " T1: " + transformations[1] + " T2: " + transformations[2] + " T3: " + transformations[3]
 //                                    + " piece ID: " + newPieceOnFloor.getPieceID() + " rawMaterialID: " + newPieceOnFloor.getRawMaterialID());
 
+
                             send_piece_code_to_opcua(
                                     newPieceOnFloor.getOrderID(),
                                     transformations[0],
@@ -139,11 +148,15 @@ public class zoneC<MCT_table> extends Thread {
                                     newPieceOnFloor.getPieceID());
 
 
-                            i++;
+
+
+
                             break;
                         }
 
+
                     }
+                    i++;
                 }
             }
         }
@@ -230,7 +243,7 @@ public class zoneC<MCT_table> extends Thread {
 
     private void storeInExitWH() {
         //checkar se tem peça pronta no W2in1
-        if (mes.getOpcClient().readBool("W2in1_sensor", "IO")) {
+        /*if (mes.getOpcClient().readBool("W2in1_sensor", "IO")) {
 
             //checkar se o exit_wh nao esta cheio
             if (!mes.getExitWH().is_WH_full()) {
@@ -240,16 +253,34 @@ public class zoneC<MCT_table> extends Thread {
 
                 //tirou da arraylist de peças
                 piece pieceDone = searchPieceInZoneC(id);
-                System.out.println("AQUI ID_PECA_OUT"+id);
+                //System.out.println("AQUI ID_PECA_OUT"+id);
                 if (pieceDone != null) {
-                    System.out.println("ENCONTROU CRL");
+                    //System.out.println("ENCONTROU CRL");
                     mes.getExitWH().addNewPiece(pieceDone);
-
+                    mes.getOpcClient().writeBool("clear_to_store_in_exitWH", "GVL", 1);
                 }
                 return;
 
 
             }
+        }*/
+
+        int id = mes.getOpcClient().readInt("id_peca_out", "GVL");
+        boolean signal = mes.getOpcClient().readBool("request_to_store_in_exitWH", "GVL");
+        // Peça detetada em W2in1, para guardar no armazém
+        if (id >= 0 && signal) {
+
+            // Retirar peça da ZonaC
+            // Criar peça nova para inserir no armazem
+            piece pieceDone = searchPieceInZoneC(id);
+
+            // Colocar nova peça na array do armazém
+            if (pieceDone != null) mes.getExitWH().addNewPiece(pieceDone);
+            else System.out.println("A peça em W2in1 é nula!");;
+
+            mes.getOpcClient().writeBool("clear_to_store_in_exitWH", "GVL", 1);
+            mes.getOpcClient().writeBool("request_to_store_in_exitWH", "GVL", 0);
+
         }
     }
 
@@ -273,13 +304,13 @@ public class zoneC<MCT_table> extends Thread {
                         mes.getCurrentTime()
                 );
 
-                    iterador.remove();
-                    break;
-                }
+                iterador.remove();
+                break;
             }
-
-            return returnPiece;
-
         }
 
+        return returnPiece;
+
     }
+
+}
