@@ -28,6 +28,15 @@ public class piece {
         this.WHarrival = convP2.WHarrival;
     }
 
+    public piece(int pieceID, int rawMaterialID, int orderID, int expectedType, int WHarrival, long productionStart, long productionEnd) {
+        this.pieceID = pieceID;
+        this.rawMaterialID = rawMaterialID;
+        this.orderID = orderID;
+        this.expectedType = expectedType;
+        this.WHarrival = WHarrival;
+        this.productionStart = productionStart;
+        this.productionEnd = productionEnd;
+    }
 
     public int getPieceID() {
         return pieceID;

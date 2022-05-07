@@ -27,6 +27,7 @@ public class MES {
     private ArrayList<productionOrder> productionOrder;
     private ArrayList<shippingOrder> shippingOrder;
     private entryWarehouse entryWH;
+    private exitWarehouse exitWH;
 
 
     public MES(MES_Viewer mes_viewer) {
@@ -35,6 +36,7 @@ public class MES {
         this.productionOrder = new ArrayList<>();
         this.shippingOrder = new ArrayList<>();
         this.entryWH = new entryWarehouse();
+        this.exitWH = new exitWarehouse();
 
     }
 
@@ -115,8 +117,16 @@ public class MES {
         return entryWH;
     }
 
+    public exitWarehouse getExitWH() {
+        return exitWH;
+    }
+
     public void addPiece2entryWH(piece newPiece) {
         getEntryWH().addNewPiece(newPiece);
+    }
+
+    public void addPiece2exitWH(piece newPiece) {
+        getExitWH().addNewPiece(newPiece);
     }
 
     // ***** METHODS ******
@@ -310,6 +320,10 @@ public class MES {
 
     public void displayEntryWH() {
         getMes_viewer().showEntryWH(getEntryWH());
+    }
+
+    public void displayExitWH() {
+        getMes_viewer().showExitWH(getExitWH());
     }
 
 

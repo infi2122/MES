@@ -20,6 +20,9 @@ public class warehouse {
         return MAXIMUM_CAPACITY;
     }
 
+    public boolean is_WH_full(){
+        return getPieces().size()==MAXIMUM_CAPACITY;
+    }
 
     public int[] typeCounter() {
 

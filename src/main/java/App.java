@@ -33,7 +33,7 @@ public class App {
         schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
 //        schedulerERP.scheduleAtFixedRate(new zoneA(mes), 0, 100, TimeUnit.MILLISECONDS);
-        schedulerERP.scheduleAtFixedRate(new zoneC(mes),0, 1, TimeUnit.SECONDS);
+        schedulerERP.scheduleAtFixedRate(new zoneC(mes),0, 100, TimeUnit.MILLISECONDS);
 
     }
 
@@ -51,6 +51,7 @@ public class App {
                 //mes.receiveInternalOrders();
                 mes.displayInternalOrders();
                 mes.displayEntryWH();
+                mes.displayExitWH();
             }
         }
 

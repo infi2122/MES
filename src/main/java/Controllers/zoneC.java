@@ -10,6 +10,7 @@ import java.util.Iterator;
 public class zoneC<MCT_table> extends Thread {
 
     private ArrayList<piece> piecesOnFloor = new ArrayList<>();
+
     private final int MAXIMUM_CAPACITY = 6;
     private static int oneDay = 60;
 
@@ -33,7 +34,18 @@ public class zoneC<MCT_table> extends Thread {
         synchronized (mes) {
             defineMCT();
             unloadToSFS();
+            storeInExitWH();
+            updateExitWH_state();
 
+            for (piece curr : piecesOnFloor) {
+                System.out.println(
+                        "order id: " + curr.getOrderID()
+                                + " piece type " + curr.getExpectedType()
+                                + " piece id " + curr.getPieceID()
+                );
+            }
+
+            System.out.println(" piece on floor size: "+piecesOnFloor.size() );
         }
     }
 
@@ -99,7 +111,7 @@ public class zoneC<MCT_table> extends Thread {
 
             if (currProdOrder.getStartDate() <= currDay) {
 
-                if (piecesOnFloor.size() < MAXIMUM_CAPACITY && mes.getOpcClient().readBool("W1in1_free", "GVL")) {
+                if (!is_zoneC_full() && is_W1in1_free()) {
                     for (rawMaterial curr : currProdOrder.getRawMaterials()) {
 
                         if (curr.getQty_used() > 0) {
@@ -154,7 +166,6 @@ public class zoneC<MCT_table> extends Thread {
                 returnPiece = new piece(temp);
                 returnPiece.setRawMaterialID(rawMaterialID);
                 iterador.remove();
-                System.out.println("fds" + returnPiece.getPieceID());
                 break;
             }
         }
@@ -209,5 +220,66 @@ public class zoneC<MCT_table> extends Thread {
         return ret;
     }
 
+    private void updateExitWH_state() {
+        if (mes.getExitWH().is_WH_full()) {
+            mes.getOpcClient().writeBool("wh_out_full", "GVL", 1);
+        } else {
+            mes.getOpcClient().writeBool("wh_out_full", "GVL", 0);
+        }
+    }
 
-}
+    private void storeInExitWH() {
+        //checkar se tem peça pronta no W2in1
+        if (mes.getOpcClient().readBool("W2in1_sensor", "IO")) {
+
+            //checkar se o exit_wh nao esta cheio
+            if (!mes.getExitWH().is_WH_full()) {
+
+                //pesquisar peça na lista de peças da zona C pelo ID
+                int id = mes.getOpcClient().readInt("id_peca_out", "GVL");
+
+                //tirou da arraylist de peças
+                piece pieceDone = searchPieceInZoneC(id);
+                System.out.println("AQUI ID_PECA_OUT"+id);
+                if (pieceDone != null) {
+                    System.out.println("ENCONTROU CRL");
+                    mes.getExitWH().addNewPiece(pieceDone);
+
+                }
+                return;
+
+
+            }
+        }
+    }
+
+    private piece searchPieceInZoneC(int pieceID) {
+
+        piece returnPiece = null;
+
+        ArrayList<piece> list = piecesOnFloor;
+        Iterator<piece> iterador = list.iterator();
+
+        while (iterador.hasNext()) {
+            piece temp = iterador.next();
+            if (temp.getPieceID() == pieceID) {
+                returnPiece = new piece(
+                        temp.getPieceID(),
+                        temp.getRawMaterialID(),
+                        temp.getOrderID(),
+                        temp.getExpectedType(),
+                        temp.getWHarrival(),
+                        temp.getProductionStart(),
+                        mes.getCurrentTime()
+                );
+
+                    iterador.remove();
+                    break;
+                }
+            }
+
+            return returnPiece;
+
+        }
+
+    }

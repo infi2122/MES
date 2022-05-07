@@ -44,4 +44,17 @@ public class MES_Viewer {
 
     }
 
+    public void showExitWH(exitWarehouse exitWH) {
+
+        System.out.println("***** Exit Warehouse *****");
+
+        for (piece curr : exitWH.getPieces()) {
+            System.out.println("rawMaterial ID: " + curr.getRawMaterialID() + " piece ID:" + curr.getPieceID()
+                                + " arrived on day: " + curr.getWHarrival()
+                                + " and started production: "+ curr.getProductionStart()
+                                + " and ended production: "+ curr.getProductionEnd() );
+        }
+
+    }
+
 }
