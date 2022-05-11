@@ -2,13 +2,16 @@ package Controllers;
 
 import Models.piece;
 import Models.shippingOrder;
+
 import java.util.ArrayList;
 
-public class ZoneE  extends Thread {
+public class ZoneE extends Thread {
 
     private MES mes;
 
-    public ZoneE(MES mes1) { this.mes = mes1; }
+    public ZoneE(MES mes1) {
+        this.mes = mes1;
+    }
 
     private ArrayList<piece> piecesInZoneE = new ArrayList<>();
     private ArrayList<piece> piecesToExport = new ArrayList<>();
@@ -17,15 +20,13 @@ public class ZoneE  extends Thread {
     private boolean old_w2out2Free;
 
     @Override
-    public void run(){
+    public void run() {
         synchronized (mes) {
 
             int pieceQtyZoneE = handlePlacementOfPieces();
             getShippingTimmings();
 
-
-            System.out.println("N pieces in Zone E: " + pieceQtyZoneE);
-
+//            System.out.println("N pieces in Zone E: " + pieceQtyZoneE);
 
             updatePlacingPieceFlag();
         }
@@ -44,7 +45,7 @@ public class ZoneE  extends Thread {
                 for (piece bolacha : piecesInExitWH) {
                     if (bolacha.getOrderID() == titanic.getManufacturingID() && searchForPieceInExportList(bolacha) == 0) {
                         piecesToExport.add(bolacha); // Armazena as peças a serem retiradas nesta arraylist
-                        System.out.println("Added piece ID=" + bolacha.getPieceID() + " to piecesToExport");
+                        System.out.println("Added piece ID = " + bolacha.getPieceID() + " to piecesToExport");
                     }
                 }
             }
@@ -55,7 +56,7 @@ public class ZoneE  extends Thread {
         if (piecesToExport.size() > 0 && piecesInZoneE.size() <= 12 && !placingPiece) {
             placingPiece = true;
             int placedPieceId = placePieceInConveyor(); // Coloca essas peças no tapete
-            System.out.println("Piece ID=" + placedPieceId + " was placed in Zone E!");
+            System.out.println("Piece ID = " + placedPieceId + " was placed in Zone E!");
         }
 
         return piecesInZoneE.size();
@@ -80,6 +81,7 @@ public class ZoneE  extends Thread {
     private boolean isW2out1Free() {
         return mes.getOpcClient().readBool("w2out2_free", "GVL");
     }
+
     private void markW2out1AsFull() {
         mes.getOpcClient().writeBool("w2out2_free", "GVL", 0);
     }
@@ -95,7 +97,7 @@ public class ZoneE  extends Thread {
         return 0;
     }
 
-    private int searchForPieceInZoneE(piece p){
+    private int searchForPieceInZoneE(piece p) {
         for (piece caixote : piecesInZoneE) {
             if (caixote.getPieceID() == p.getPieceID()) return 1;
 
@@ -113,7 +115,7 @@ public class ZoneE  extends Thread {
         return RE;
     }
 
-    private void updatePlacingPieceFlag(){
+    private void updatePlacingPieceFlag() {
         if (RE_W2out2Free()) placingPiece = false;
     }
 

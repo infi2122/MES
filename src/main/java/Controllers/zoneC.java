@@ -11,7 +11,7 @@ public class zoneC<MCT_table> extends Thread {
 
     private ArrayList<piece> piecesOnFloor = new ArrayList<>();
 
-    private final int MAXIMUM_CAPACITY = 6;
+    private final int MAXIMUM_CAPACITY = 10;
     private static int oneDay = 60;
 
     private MES mes;
@@ -27,7 +27,7 @@ public class zoneC<MCT_table> extends Thread {
     public boolean is_zoneC_full() {
         return piecesOnFloor.size() == MAXIMUM_CAPACITY;
     }
-
+    int cnt = 0;
     @Override
     public void run() {
 
@@ -36,15 +36,21 @@ public class zoneC<MCT_table> extends Thread {
             unloadToSFS();
             storeInExitWH();
             updateExitWH_state();
+            if (cnt / 100 == 1) {
+                System.out.println("** Pieces on the zone C Floor **");
+                for (piece curr : piecesOnFloor) {
 
-            for (piece curr : piecesOnFloor) {
-                System.out.println(
-                        "order id: " + curr.getOrderID()
-                                + " piece type " + curr.getExpectedType()
-                                + " piece id " + curr.getPieceID()
-                );
+                    System.out.println(
+                            "order id: " + curr.getOrderID()
+                                    + " piece type " + curr.getExpectedType()
+                                    + " piece id " + curr.getPieceID()
+                    );
+                }
+                System.out.println("********************************");
+                cnt=0;
             }
-            System.out.println("-------------------------");
+            cnt++;
+//            System.out.println("-------------------------");
         }
     }
 
@@ -84,7 +90,6 @@ public class zoneC<MCT_table> extends Thread {
             // Porque o vetor MCT_table tem as P3 na pos 0
             type = type - 3;
             if (type > 0) {
-                //NAO ACREDITO QUE ERA ISTO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa
                 setMCT(MCT_table[type]);
             }
 
@@ -110,20 +115,15 @@ public class zoneC<MCT_table> extends Thread {
 
         // Percorre todas as production orders
         if (i < mes.getProductionOrder().size()) {
-
             productionOrder currProdOrder = mes.getProductionOrder().get(i);
-
             // Seleciona as production orders do dia atual e anteriores, se houverem
             if (currProdOrder.getStartDate() <= currDay) {
-
                 // Cabem peças na zona C e o tapete W1in1 está livre
                 if (!is_zoneC_full() && is_W1in1_free()) {
-                    System.out.println("------------HELLO-----------");
                     for (rawMaterial curr : currProdOrder.getRawMaterials()) {
-
                         // Se a production order necessitar do raw material
                         if (curr.getQty_used() > 0) {
-                            System.out.println("Raw Material id: " + curr.getRawMaterialID());
+                            //System.out.println("Raw Material id: " + curr.getRawMaterialID());
                             piece newPieceOnFloor = searchPieceInEntryWH(curr.getRawMaterialID());
 
                             newPieceOnFloor.setOrderID(currProdOrder.getManufacturingID());
@@ -133,12 +133,9 @@ public class zoneC<MCT_table> extends Thread {
                             //  int[] transformations = [actualType, T1, T2, T3]
                             int[] transformations = getTransformations(newPieceOnFloor.getExpectedType());
                             curr.setQty_used(curr.getQty_used() - 1);
-
 //                            System.out.println("manufacturingID: " + newPieceOnFloor.getOrderID() + " tipo atual: " + transformations[0]
 //                                    + " T1: " + transformations[1] + " T2: " + transformations[2] + " T3: " + transformations[3]
 //                                    + " piece ID: " + newPieceOnFloor.getPieceID() + " rawMaterialID: " + newPieceOnFloor.getRawMaterialID());
-
-
                             send_piece_code_to_opcua(
                                     newPieceOnFloor.getOrderID(),
                                     transformations[0],
@@ -146,19 +143,13 @@ public class zoneC<MCT_table> extends Thread {
                                     transformations[2],
                                     transformations[3],
                                     newPieceOnFloor.getPieceID());
-
-
-
-
-
                             break;
                         }
-
-
                     }
-                    i++;
+
                 }
             }
+            i++;
         }
         if (i == mes.getProductionOrder().size()) {
             i = 0;
@@ -276,7 +267,8 @@ public class zoneC<MCT_table> extends Thread {
 
             // Colocar nova peça na array do armazém
             if (pieceDone != null) mes.getExitWH().addNewPiece(pieceDone);
-            else System.out.println("A peça em W2in1 é nula!");;
+            else System.out.println("A peça em W2in1 é nula!");
+            ;
 
             mes.getOpcClient().writeBool("clear_to_store_in_exitWH", "GVL", 1);
             mes.getOpcClient().writeBool("request_to_store_in_exitWH", "GVL", 0);
@@ -293,6 +285,7 @@ public class zoneC<MCT_table> extends Thread {
 
         while (iterador.hasNext()) {
             piece temp = iterador.next();
+            System.out.println(" AHAHAHA temp_ID: " +temp.getPieceID()  + " pieceID: " + pieceID);
             if (temp.getPieceID() == pieceID) {
                 returnPiece = new piece(
                         temp.getPieceID(),

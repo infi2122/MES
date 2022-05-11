@@ -59,9 +59,9 @@ public class zoneA extends Thread {
 
     public void setWH_full(boolean WH_full) {
         if (WH_full)
-            mes.getOpcClient().writeBool("wh_full", "GVL", 1);
+            mes.getOpcClient().writeBool("wh_entry_full", "GVL", 1);
         else
-            mes.getOpcClient().writeBool("wh_full", "GVL", 0);
+            mes.getOpcClient().writeBool("wh_entry_full", "GVL", 0);
 
         this.WH_full = WH_full;
     }

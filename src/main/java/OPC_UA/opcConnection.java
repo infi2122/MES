@@ -141,7 +141,7 @@ public class opcConnection {
             CompletableFuture<StatusCode> f = client.writeValue(new NodeId(nameSpaceIndex, identifier), dataValue);
 
             if (f.get().isBad()) {
-                System.out.println("Error on write!");
+                System.out.println("Error on writing by OPC-UA: " + node);
             }
         } catch (ExecutionException ex) {
             ex.printStackTrace();
