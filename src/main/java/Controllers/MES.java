@@ -312,6 +312,13 @@ public class MES {
 
     }
 
+    public void testMES_zonaE() {
+        setStartTime(System.currentTimeMillis(), true);
+        shippingOrder shipship = new shippingOrder(1, 5, 5);
+
+        addShippingOrder(shipship);
+    }
+
     // ******** VIEW METHODS *********
 
     public void displayInternalOrders() {

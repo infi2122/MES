@@ -1,4 +1,5 @@
 import Controllers.MES;
+import Controllers.ZoneE;
 import Controllers.zoneA;
 import Controllers.zoneC;
 import OPC_UA.opcConnection;
@@ -17,6 +18,7 @@ public class App {
 
 //        mes.testMES_zonaA();
         mes.testMES_zonaC();
+        mes.testMES_zonaE();
 //        ERPtunnel ERP2tcp = new ERPtunnel();
 //        ERP2tcp.openConnection();
 
@@ -34,6 +36,7 @@ public class App {
         schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
 //        schedulerERP.scheduleAtFixedRate(new zoneA(mes), 0, 100, TimeUnit.MILLISECONDS);
         schedulerERP.scheduleAtFixedRate(new zoneC(mes),0, 100, TimeUnit.MILLISECONDS);
+        schedulerERP.scheduleAtFixedRate(new ZoneE(mes),0, 100, TimeUnit.MILLISECONDS);
 
     }
 
