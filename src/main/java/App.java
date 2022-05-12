@@ -25,7 +25,8 @@ public class App {
 
         /* For synchronize time in ERP and MES */
         mes.setErp2MesTunnel(ERP2tcp);
-        mes.setStartTime(0,false);
+//        mes.setStartTime(0,false);
+        mes.setStartTime( System.currentTimeMillis(), true );
         /* *************************************** */
 
         opcConnection opcConnection = new opcConnection();
