@@ -4,6 +4,7 @@ import Models.piece;
 import Models.productionOrder;
 import Models.rawMaterial;
 
+import javax.xml.bind.SchemaOutputResolver;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -11,7 +12,7 @@ public class zoneC<MCT_table> extends Thread {
 
     private ArrayList<piece> piecesOnFloor = new ArrayList<>();
 
-    private final int MAXIMUM_CAPACITY = 10;
+    private final int MAXIMUM_CAPACITY = 6;
     private static int oneDay = 60;
 
     private MES mes;
@@ -27,7 +28,9 @@ public class zoneC<MCT_table> extends Thread {
     public boolean is_zoneC_full() {
         return piecesOnFloor.size() == MAXIMUM_CAPACITY;
     }
+
     int cnt = 0;
+
     @Override
     public void run() {
 
@@ -47,7 +50,7 @@ public class zoneC<MCT_table> extends Thread {
                     );
                 }
                 System.out.println("********************************");
-                cnt=0;
+                cnt = 0;
             }
             cnt++;
 //            System.out.println("-------------------------");
@@ -68,32 +71,34 @@ public class zoneC<MCT_table> extends Thread {
     public void defineMCT() {
 
         int currDay = mes.getCountdays();
-
         if (currDay == 0) {
             // Se o dia for 0 então faz o default das MCT
             // MCT [ 1, 1, 3, 2, 2, 4 ]
             int[] mct = {1, 1, 3, 2, 2, 4};
             setMCT(mct);
-
-        } else if (currDay % 2 != 0)
             return;
-        else {
-            int type = 0, num = 0;
-            for (productionOrder curr : mes.getProductionOrder()) {
-                if (curr.getStartDate() == currDay + 1 || curr.getStartDate() == currDay + 2) {
-                    if (curr.getQty() > num) {
-                        num = curr.getQty();
-                        type = curr.getFinalType();
-                    }
+        }
+        if (currDay % 2 == 0)
+            return;
+
+        int type = 0, num = 0;
+        for (productionOrder curr : mes.getProductionOrder()) {
+            System.out.println("MCT PRODUCTION ORDER SIZE: "+ mes.getProductionOrder().size() + " Tipo: " + curr.getFinalType() );
+            if (curr.getStartDate() == currDay + 1 || curr.getStartDate() == currDay + 2) {
+                if (curr.getQty() > num) {
+                    num = curr.getQty();
+                    type = curr.getFinalType();
                 }
             }
-            // Porque o vetor MCT_table tem as P3 na pos 0
-            type = type - 3;
-            if (type > 0) {
-                setMCT(MCT_table[type]);
-            }
-
         }
+        // Porque o vetor MCT_table tem as P3 na pos 0
+        type = type - 3;
+        if (type >= 0) {
+            setMCT(MCT_table[type]);
+        }
+        System.out.println("Tipo "+type);
+        return;
+
 
     }
 
@@ -285,7 +290,7 @@ public class zoneC<MCT_table> extends Thread {
 
         while (iterador.hasNext()) {
             piece temp = iterador.next();
-            System.out.println(" AHAHAHA temp_ID: " +temp.getPieceID()  + " pieceID: " + pieceID);
+            System.out.println(" AHAHAHA temp_ID: " + temp.getPieceID() + " pieceID: " + pieceID);
             if (temp.getPieceID() == pieceID) {
                 returnPiece = new piece(
                         temp.getPieceID(),
