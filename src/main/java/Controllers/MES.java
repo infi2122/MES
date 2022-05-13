@@ -295,14 +295,14 @@ public class MES {
 
         }
 
-        productionOrder pOrder = new productionOrder(0, 4, 3, 3);
+        productionOrder pOrder = new productionOrder(0, 4, 2, 3);
         ArrayList<rawMaterial> raw = new ArrayList<>();
         raw.add(new rawMaterial(0, 3));
         pOrder.setRawMaterials(raw);
 
         addProductionOrder(pOrder);
 
-        productionOrder pOrder2 = new productionOrder(1, 5 , 3, 5);
+        productionOrder pOrder2 = new productionOrder(1, 5 , 2, 5);
         ArrayList<rawMaterial> raw2 = new ArrayList<>();
         raw2.add(new rawMaterial(1, 5));
         pOrder2.setRawMaterials(raw2);
@@ -314,7 +314,7 @@ public class MES {
 
     public void testMES_zonaE() {
         setStartTime(System.currentTimeMillis(), true);
-        shippingOrder shipship = new shippingOrder(1, 5, 5);
+        shippingOrder shipship = new shippingOrder(1, 2, 5);
 
         addShippingOrder(shipship);
     }
