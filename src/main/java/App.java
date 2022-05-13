@@ -65,7 +65,7 @@ public class App {
                 mes.displayInternalOrders();
                 mes.displayEntryWH();
                 mes.displayExitWH();
-                mes.orderTimes();
+                //mes.orderTimes();
             }
         }
 
