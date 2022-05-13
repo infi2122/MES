@@ -37,7 +37,7 @@ public class ZoneE extends Thread {
         ArrayList<shippingOrder> allShippingOrders = mes.getShippingOrder(); // Obter todas as shipping orders
 
         for (shippingOrder titanic : allShippingOrders) { // Verificar se alguma shipping order é para hoje
-            if (titanic.getStartDate() <= mes.getCountdays()) { // Se order for para hoje
+            if (titanic.getStartDate() <= mes.getCountdays() && allThePiecesArrived(titanic)) { // Se order for para hoje
 
                 ArrayList<piece> piecesInExitWH = mes.getExitWH().getPieces(); // Obter todas as peças no armazem de saída
 
@@ -119,11 +119,27 @@ public class ZoneE extends Thread {
         if (RE_W2out2Free()) placingPiece = false;
     }
 
+    private boolean allThePiecesArrived(shippingOrder sOrder) {
+
+        ArrayList<piece> piecesInExitWH = mes.getExitWH().getPieces(); // Obter todas as peças no armazem de saída
+        int piecesIWant = 0;
+
+        // Percorre armazem de saída em busca de peças com o OrderID igual ao da shippingOrder
+        for (piece bolacha : piecesInExitWH) {
+            if (bolacha.getOrderID() == sOrder.getManufacturingID() && searchForPieceInExportList(bolacha) == 0) {
+                piecesIWant++;
+            }
+            if (sOrder.getQty() == piecesIWant) {
+                return true;
+            }
+
+        }
+        return false;
+    }
 
     public int setShippingTimmings() {
         return 0;
     }
-
 
 
 }
