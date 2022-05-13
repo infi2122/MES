@@ -1,26 +1,24 @@
-package UDP;
+package comsProtocols;
 
 
-public class ERPtunnel {
+public class ERP_to_MES {
 
     private static tcpClient client;
-    private static int port = 20000;
 
     public static tcpClient getClient() {
         return client;
     }
 
     public static void setClient(tcpClient client) {
-        ERPtunnel.client = client;
+        ERP_to_MES.client = client;
     }
 
-    public void openConnection() {
+    public void openConnection(int port, String ip) {
         setClient(new tcpClient());
-        getClient().startConnection("127.0.0.1", port);
+        getClient().startConnection(ip, port);
     }
 
     public void stopConnection() {
-
         getClient().stopConnection();
     }
 
@@ -38,11 +36,10 @@ public class ERPtunnel {
         String response = new String();
         try {
             response = getClient().sendMessage("internalOrders");
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
         return response;
-
     }
+
 }

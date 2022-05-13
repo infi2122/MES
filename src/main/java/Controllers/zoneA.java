@@ -105,10 +105,10 @@ public class zoneA extends Thread {
                 int currPieceType = curr.getPieceType();
                 if (currPieceType == 1) {
                     setRecvType1(true);
-                    System.out.println("RECV Type 1");
+                    //System.out.println("RECV Type 1");
                 } else {
                     setRecvType2(true);
-                   System.out.println("RECV Type 2");
+                   //System.out.println("RECV Type 2");
                 }
                 return curr;
             }

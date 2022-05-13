@@ -2,23 +2,20 @@ package Controllers;
 
 import Models.*;
 import OPC_UA.opcConnection;
-import UDP.ERPtunnel;
+import comsProtocols.ERP_to_MES;
 import Viewers.MES_Viewer;
 
 import java.util.ArrayList;
 
 public class MES {
-
     // ****** VARIABLES *******
 
     private long startTime = 0;
     private int countdays = -1;
-    private ERPtunnel erp2mesTunnel;
+    private ERP_to_MES erp2mes;
     private opcConnection opcClient;
 
-
     public static final int oneDay = 60;
-
 
     // ****** ATTRIBUTTES ******
     private long currentTime;
@@ -26,6 +23,8 @@ public class MES {
     private ArrayList<receiveOrder> receiveOrder;
     private ArrayList<productionOrder> productionOrder;
     private ArrayList<shippingOrder> shippingOrder;
+    private ArrayList<piecesHistory> piecesHistories;
+    private String pieceHistories_str;
     private entryWarehouse entryWH;
     private exitWarehouse exitWH;
 
@@ -37,6 +36,8 @@ public class MES {
         this.shippingOrder = new ArrayList<>();
         this.entryWH = new entryWarehouse();
         this.exitWH = new exitWarehouse();
+        this.pieceHistories_str = new String();
+        this.piecesHistories = new ArrayList<>();
 
     }
 
@@ -44,12 +45,20 @@ public class MES {
         return countdays;
     }
 
-    public void setErp2MesTunnel(ERPtunnel tunnel) {
-        erp2mesTunnel = tunnel;
+    public void setErp_to_Mes(ERP_to_MES erp_to_mes) {
+        erp2mes = erp_to_mes;
     }
 
-    public ERPtunnel getErp2mesTunnel() {
-        return erp2mesTunnel;
+    public ERP_to_MES getErp_to_Mes() {
+        return erp2mes;
+    }
+
+    public String getPieceHistories_str() {
+        return pieceHistories_str;
+    }
+
+    public void setPieceHistories_str(String pieceHistories_str) {
+        this.pieceHistories_str = pieceHistories_str;
     }
 
     public opcConnection getOpcClient() {
@@ -64,7 +73,7 @@ public class MES {
         if (state)
             startTime = start;
         else {
-            long init = getErp2mesTunnel().initTimer();
+            long init = getErp_to_Mes().initTimer();
             if (init != -1)
                 startTime = init;
         }
@@ -129,6 +138,14 @@ public class MES {
         getExitWH().addNewPiece(newPiece);
     }
 
+    public ArrayList<piecesHistory> getPiecesHistories() {
+        return piecesHistories;
+    }
+
+    public void addPiecesHistories(piecesHistory newPieceHistory) {
+        getPiecesHistories().add(newPieceHistory);
+    }
+
     // ***** METHODS ******
 
     public void countTime() {
@@ -152,7 +169,7 @@ public class MES {
 
     public void receiveInternalOrders() {
 
-        String internalOrdersConcat = getErp2mesTunnel().receivingOrdersFromERP();
+        String internalOrdersConcat = getErp_to_Mes().receivingOrdersFromERP();
         if (internalOrdersConcat.equals(null))
             return;
         //System.out.println(internalOrdersConcat);
@@ -252,6 +269,28 @@ public class MES {
 
     }
 
+
+    public void orderTimes() {
+
+        for (piecesHistory curr : getPiecesHistories()) {
+            if (curr.getMeanProductionTime() == 0 || curr.getMeanTimeInSFS() == 0) {
+                int sumProductionTime = 0;
+                int sumSFStime = 0;
+
+                for (piece p : curr.getPieces()) {
+                    sumProductionTime += (p.getProductionEnd() - p.getProductionStart()) / oneDay;
+                    sumSFStime += p.getShippingEnd() - p.getWHarrival();
+                }
+                curr.setMeanProductionTime(sumProductionTime / curr.getQty());
+                curr.setMeanTimeInSFS(sumSFStime / curr.getQty());
+            }
+        }
+
+        // FALTA agora codficar esta mensagem e enviar para o ERP !!!
+        // Basta o orderID, e os tempos medios
+
+    }
+
     public void testMES_zonaA() {
 
         setStartTime(System.currentTimeMillis(), true);
@@ -295,14 +334,14 @@ public class MES {
 
         }
 
-        productionOrder pOrder = new productionOrder(0, 4, 2, 3);
+        productionOrder pOrder = new productionOrder(0, 4, 3, 3);
         ArrayList<rawMaterial> raw = new ArrayList<>();
         raw.add(new rawMaterial(0, 3));
         pOrder.setRawMaterials(raw);
 
         addProductionOrder(pOrder);
 
-        productionOrder pOrder2 = new productionOrder(1, 5 , 2, 5);
+        productionOrder pOrder2 = new productionOrder(1, 5, 3, 5);
         ArrayList<rawMaterial> raw2 = new ArrayList<>();
         raw2.add(new rawMaterial(1, 5));
         pOrder2.setRawMaterials(raw2);
@@ -314,7 +353,7 @@ public class MES {
 
     public void testMES_zonaE() {
         setStartTime(System.currentTimeMillis(), true);
-        shippingOrder shipship = new shippingOrder(1, 2, 5);
+        shippingOrder shipship = new shippingOrder(1, 5, 5);
 
         addShippingOrder(shipship);
     }

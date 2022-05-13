@@ -1,4 +1,4 @@
-package UDP;
+package comsProtocols;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
