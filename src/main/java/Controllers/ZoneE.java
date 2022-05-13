@@ -45,7 +45,6 @@ public class ZoneE extends Thread {
                 for (piece bolacha : piecesInExitWH) {
                     if (bolacha.getOrderID() == titanic.getManufacturingID() && searchForPieceInExportList(bolacha) == 0) {
                         piecesToExport.add(bolacha); // Armazena as peças a serem retiradas nesta arraylist
-                        System.out.println("Added piece ID = " + bolacha.getPieceID() + " to piecesToExport");
                     }
                 }
             }
@@ -56,7 +55,6 @@ public class ZoneE extends Thread {
         if (piecesToExport.size() > 0 && piecesInZoneE.size() <= 12 && !placingPiece) {
             placingPiece = true;
             int placedPieceId = placePieceInConveyor(); // Coloca essas peças no tapete
-            System.out.println("Piece ID = " + placedPieceId + " was placed in Zone E!");
         }
 
         return piecesInZoneE.size();

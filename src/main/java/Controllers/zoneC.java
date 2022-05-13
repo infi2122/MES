@@ -40,20 +40,19 @@ public class zoneC<MCT_table> extends Thread {
             storeInExitWH();
             updateExitWH_state();
             if (cnt / 100 == 1) {
-                System.out.println("** Pieces on the zone C Floor **");
-                for (piece curr : piecesOnFloor) {
-
-                    System.out.println(
-                            "order id: " + curr.getOrderID()
-                                    + " piece type " + curr.getExpectedType()
-                                    + " piece id " + curr.getPieceID()
-                    );
-                }
-                System.out.println("********************************");
+//                System.out.println("** Pieces on the zone C Floor **");
+//                for (piece curr : piecesOnFloor) {
+//
+//                    System.out.println(
+//                            "order id: " + curr.getOrderID()
+//                                    + " piece type " + curr.getExpectedType()
+//                                    + " piece id " + curr.getPieceID()
+//                    );
+//                }
+//                System.out.println("********************************");
                 cnt = 0;
             }
             cnt++;
-//            System.out.println("-------------------------");
         }
     }
 
@@ -83,7 +82,6 @@ public class zoneC<MCT_table> extends Thread {
 
         int type = 0, num = 0;
         for (productionOrder curr : mes.getProductionOrder()) {
-            System.out.println("MCT PRODUCTION ORDER SIZE: "+ mes.getProductionOrder().size() + " Tipo: " + curr.getFinalType() );
             if (curr.getStartDate() == currDay + 1 || curr.getStartDate() == currDay + 2) {
                 if (curr.getQty() > num) {
                     num = curr.getQty();
@@ -96,7 +94,6 @@ public class zoneC<MCT_table> extends Thread {
         if (type >= 0) {
             setMCT(MCT_table[type]);
         }
-        System.out.println("Tipo "+type);
         return;
 
 
@@ -290,7 +287,6 @@ public class zoneC<MCT_table> extends Thread {
 
         while (iterador.hasNext()) {
             piece temp = iterador.next();
-            System.out.println(" AHAHAHA temp_ID: " + temp.getPieceID() + " pieceID: " + pieceID);
             if (temp.getPieceID() == pieceID) {
                 returnPiece = new piece(
                         temp.getPieceID(),
