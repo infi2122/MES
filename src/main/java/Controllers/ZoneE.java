@@ -1,6 +1,8 @@
 package Controllers;
 
 import Models.piece;
+import Models.piecesHistory;
+import Models.productionOrder;
 import Models.shippingOrder;
 
 import java.util.ArrayList;
@@ -19,15 +21,18 @@ public class ZoneE extends Thread {
     private boolean placingPiece = false;
     private boolean old_w2out2Free;
 
+    private boolean old_pusher1_pieceDelivered;
+    private boolean old_pusher2_pieceDelivered;
+    private boolean old_pusher3_pieceDelivered;
+
     @Override
     public void run() {
         synchronized (mes) {
 
             int pieceQtyZoneE = handlePlacementOfPieces();
+//          System.out.println("N pieces in Zone E: " + pieceQtyZoneE);
+
             setShippingTimmings();
-
-//            System.out.println("N pieces in Zone E: " + pieceQtyZoneE);
-
             updatePlacingPieceFlag();
         }
     }
@@ -45,7 +50,6 @@ public class ZoneE extends Thread {
                 for (piece bolacha : piecesInExitWH) {
                     if (bolacha.getOrderID() == titanic.getManufacturingID() && searchForPieceInExportList(bolacha) == 0) {
                         piecesToExport.add(bolacha); // Armazena as peças a serem retiradas nesta arraylist
-                        System.out.println("Added piece ID = " + bolacha.getPieceID() + " to piecesToExport");
                     }
                 }
             }
@@ -56,7 +60,6 @@ public class ZoneE extends Thread {
         if (piecesToExport.size() > 0 && piecesInZoneE.size() <= 12 && !placingPiece) {
             placingPiece = true;
             int placedPieceId = placePieceInConveyor(); // Coloca essas peças no tapete
-            System.out.println("Piece ID = " + placedPieceId + " was placed in Zone E!");
         }
 
         return piecesInZoneE.size();
@@ -68,8 +71,9 @@ public class ZoneE extends Thread {
         // Função que literalmente altera o registo no plc para colocar peça
         // Apenas transmite o pieceID para o plc, o resto guarda numa arrayList de peças chamada piecesInZoneE
         piece p = piecesToExport.get(0); // Remove-se sempre a primeira peça na lista
-        sendPieceCodeToPLC(p.getExpectedType()); // Código enviado para o plc
-        //markW2out1AsFull();
+        sendPieceCodeToPLC(p.getExpectedType(), p.getPieceID()); // Código enviado para o plc
+
+        p.setShippingStart((int) mes.getCurrentTime()); // Define o tempo de início da exportação
 
         piecesInZoneE.add(p);
         mes.getExitWH().getPieces().remove(p); // Remove peça da arrayList do armazém
@@ -78,16 +82,9 @@ public class ZoneE extends Thread {
         return p.getPieceID();
     }
 
-    private boolean isW2out1Free() {
-        return mes.getOpcClient().readBool("w2out2_free", "GVL");
-    }
-
-    private void markW2out1AsFull() {
-        mes.getOpcClient().writeBool("w2out2_free", "GVL", 0);
-    }
-
-    private void sendPieceCodeToPLC(int PieceType) {
+    private void sendPieceCodeToPLC(int PieceType, int PieceID) {
         mes.getOpcClient().writeInt("w2out2_r1", "GVL", PieceType);
+        mes.getOpcClient().writeInt("PE_0", "GVL", PieceID);
     }
 
     private int searchForPieceInExportList(piece p) {
@@ -97,19 +94,9 @@ public class ZoneE extends Thread {
         return 0;
     }
 
-    private int searchForPieceInZoneE(piece p) {
-        for (piece caixote : piecesInZoneE) {
-            if (caixote.getPieceID() == p.getPieceID()) return 1;
-
-        }
-        return 0;
-    }
-
     private boolean RE_W2out2Free() {
         boolean new_w2out2Free = mes.getOpcClient().readBool("w2out2_free", "GVL");
-
         boolean RE = !old_w2out2Free && new_w2out2Free;
-
         old_w2out2Free = new_w2out2Free;
 
         return RE;
@@ -137,8 +124,123 @@ public class ZoneE extends Thread {
         return false;
     }
 
-    public int setShippingTimmings() {
-        return 0;
+    public void setShippingTimmings() {
+        // Verificar se pusher1 entregou peça
+        if (RE_pusher1_pieceDelivered()) {
+            // Resetar a flag
+            mes.getOpcClient().writeBool("pusher1_pieceDelivered", "GVL", 0);
+
+            // Ler id da peça entregue
+            int pieceDelivered_id = mes.getOpcClient().readInt("pusher1_pieceDeliveredID", "GVL");
+
+            // Guardar tempo de entrega dessa peça no piecesInZoneE
+            setPieceDeliveryTime(pieceDelivered_id, (int) mes.getCurrentTime());
+
+            // Enviar Peça do piecesInZoneE para o piecesHistory (Ideia do Daniel)
+            sendPieceToPieceHistory(pieceDelivered_id);
+
+        }
+
+
+        // Verificar se pusher2 entregou peça
+        if (RE_pusher2_pieceDelivered()) {
+            // Resetar a flag
+            mes.getOpcClient().writeBool("pusher2_pieceDelivered", "GVL", 0);
+
+            // Ler id da peça entregue
+            int pieceDelivered_id = mes.getOpcClient().readInt("pusher2_pieceDeliveredID", "GVL");
+
+            // Guardar tempo de entrega dessa peça no piecesInZoneE
+            setPieceDeliveryTime(pieceDelivered_id, (int) mes.getCurrentTime());
+
+            // Enviar Peça do piecesInZoneE para o piecesHistory (Ideia do Daniel)
+            sendPieceToPieceHistory(pieceDelivered_id);
+        }
+
+
+        // Verificar se pusher3 entregou peça
+        if (RE_pusher3_pieceDelivered()) {
+            // Resetar a flag
+            mes.getOpcClient().writeBool("pusher3_pieceDelivered", "GVL", 0);
+
+            // Ler id da peça entregue
+            int pieceDelivered_id = mes.getOpcClient().readInt("pusher3_pieceDeliveredID", "GVL");
+
+            // Guardar tempo de entrega dessa peça no piecesInZoneE
+            setPieceDeliveryTime(pieceDelivered_id, (int) mes.getCurrentTime());
+
+            // Enviar Peça do piecesInZoneE para o piecesHistory (Ideia do Daniel)
+            sendPieceToPieceHistory(pieceDelivered_id);
+        }
+    }
+
+    private boolean RE_pusher1_pieceDelivered() {
+        boolean new_pusher1_pieceDelivered = mes.getOpcClient().readBool("pusher1_pieceDelivered", "GVL");
+        boolean RE = !old_pusher1_pieceDelivered && new_pusher1_pieceDelivered;
+        old_pusher1_pieceDelivered = new_pusher1_pieceDelivered;
+
+        return RE;
+    }
+    private boolean RE_pusher2_pieceDelivered() {
+        boolean new_pusher2_pieceDelivered = mes.getOpcClient().readBool("pusher2_pieceDelivered", "GVL");
+        boolean RE = !old_pusher2_pieceDelivered && new_pusher2_pieceDelivered;
+        old_pusher2_pieceDelivered = new_pusher2_pieceDelivered;
+
+        return RE;
+    }
+    private boolean RE_pusher3_pieceDelivered() {
+        boolean new_pusher3_pieceDelivered = mes.getOpcClient().readBool("pusher3_pieceDelivered", "GVL");
+        boolean RE = !old_pusher3_pieceDelivered && new_pusher3_pieceDelivered;
+        old_pusher3_pieceDelivered = new_pusher3_pieceDelivered;
+
+        return RE;
+    }
+
+    private void setPieceDeliveryTime(int pieceId, int time) {
+        for (piece biscoito : piecesInZoneE) {
+            if (biscoito.getPieceID() == pieceId) {
+                biscoito.setShippingEnd(time);
+            }
+        }
+    }
+
+    private void sendPieceToPieceHistory(int pieceId) {
+        piece p = null;
+        for (piece bolacha : piecesInZoneE) {
+            if (bolacha.getPieceID() == pieceId) {
+                p = bolacha;
+
+                break;
+            }
+        }
+
+        // Procura a pieceHistory com o mesmo orderID que a peça
+        for (piecesHistory pH : mes.getPiecesHistories()) {
+            assert p != null;
+            if (pH.getManufacturingID() == p.getOrderID()) {
+                pH.addNewPieces(p);
+                piecesInZoneE.remove(p);
+                return;
+            }
+        }
+
+        // Se não encontrar pieceHistory, cria um novo
+        // Procurar production order correspondente ao orderID
+        // Retirar qty dessa production order
+        int prodOrderQty = 0;
+
+        for (productionOrder pO : mes.getProductionOrder()) {
+            if (pO.getManufacturingID() == p.getOrderID()) {
+                prodOrderQty = pO.getQty();
+            }
+        }
+
+        // Criar nova pieceHistory, adicionar a peça a essa nova pH, remover peça da zonaE, adicionar pH ao MES
+        piecesHistory newPiecesHistory = new piecesHistory(p.getOrderID(), prodOrderQty);
+        newPiecesHistory.addNewPieces(p);
+        mes.getPiecesHistories().add(newPiecesHistory);
+        piecesInZoneE.remove(p);
+
     }
 
 

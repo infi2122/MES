@@ -38,7 +38,7 @@ public class piecesHistory {
         return pieces;
     }
 
-    public void addNwePieces(piece newPiece) {
+    public void addNewPieces(piece newPiece) {
         getPieces().add(newPiece);
     }
 
