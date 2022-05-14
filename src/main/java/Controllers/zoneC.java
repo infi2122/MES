@@ -119,9 +119,9 @@ public class zoneC<MCT_table> extends Thread {
         if (i < mes.getProductionOrder().size()) {
             productionOrder currProdOrder = mes.getProductionOrder().get(i);
             // Seleciona as production orders do dia atual e anteriores, se houverem
-            if (currProdOrder.getStartDate() <= currDay) {
+            if (!is_zoneC_full() && is_W1in1_free()) {
                 // Cabem peças na zona C e o tapete W1in1 está livre
-                if (!is_zoneC_full() && is_W1in1_free()) {
+                if (currProdOrder.getStartDate() <= currDay) {
                     for (rawMaterial curr : currProdOrder.getRawMaterials()) {
                         // Se a production order necessitar do raw material
                         if (curr.getQty_used() > 0) {
@@ -148,10 +148,10 @@ public class zoneC<MCT_table> extends Thread {
                             break;
                         }
                     }
-
                 }
+                i++;
             }
-            i++;
+
         }
         if (i == mes.getProductionOrder().size()) {
             i = 0;
