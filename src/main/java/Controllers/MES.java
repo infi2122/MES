@@ -2,18 +2,19 @@ package Controllers;
 
 import Models.*;
 import OPC_UA.opcConnection;
-import comsProtocols.ERP_to_MES;
 import Viewers.MES_Viewer;
+import comsProtocols.sharedResources;
 
 import java.util.ArrayList;
 
 public class MES {
     // ****** VARIABLES *******
 
-    private long startTime = 0;
+    private long startTime = Integer.MAX_VALUE;
     private int countdays = -1;
-    private ERP_to_MES erp2mes;
+    private sharedResources sharedBuffer;
     private opcConnection opcClient;
+    private boolean syncronized_with_ERP;
 
     public static final int oneDay = 60;
 
@@ -24,41 +25,23 @@ public class MES {
     private ArrayList<productionOrder> productionOrder;
     private ArrayList<shippingOrder> shippingOrder;
     private ArrayList<piecesHistory> piecesHistories;
-    private String pieceHistories_str;
     private entryWarehouse entryWH;
     private exitWarehouse exitWH;
 
 
-    public MES(MES_Viewer mes_viewer) {
+    public MES(MES_Viewer mes_viewer, sharedResources sharedBuffer) {
         this.mes_viewer = mes_viewer;
+        this.sharedBuffer = sharedBuffer;
         this.receiveOrder = new ArrayList<>();
         this.productionOrder = new ArrayList<>();
         this.shippingOrder = new ArrayList<>();
         this.entryWH = new entryWarehouse();
         this.exitWH = new exitWarehouse();
-        this.pieceHistories_str = new String();
         this.piecesHistories = new ArrayList<>();
-
     }
 
     public int getCountdays() {
         return countdays;
-    }
-
-    public void setErp_to_Mes(ERP_to_MES erp_to_mes) {
-        erp2mes = erp_to_mes;
-    }
-
-    public ERP_to_MES getErp_to_Mes() {
-        return erp2mes;
-    }
-
-    public String getPieceHistories_str() {
-        return pieceHistories_str;
-    }
-
-    public void setPieceHistories_str(String pieceHistories_str) {
-        this.pieceHistories_str = pieceHistories_str;
     }
 
     public opcConnection getOpcClient() {
@@ -69,16 +52,28 @@ public class MES {
         this.opcClient = opcClient;
     }
 
-    public void setStartTime(long start, boolean state) {
-        if (state)
-            startTime = start;
-        else {
-            long init = getErp_to_Mes().initTimer();
-            if (init != -1)
-                startTime = init;
+    /**
+     * If true, will try to syncronize with ERP
+     * else will get system millis
+     *
+     * @param conectToERP
+     */
+    public void setStartTime(boolean conectToERP) {
+
+        if (conectToERP) {
+            syncronized_with_ERP = true;
+
+        } else {
+            startTime = System.currentTimeMillis();
+            syncronized_with_ERP = false;
         }
     }
 
+    /**
+     * Time in seconds
+     *
+     * @return
+     */
     public long getCurrentTime() {
         return currentTime;
     }
@@ -150,6 +145,9 @@ public class MES {
 
     public void countTime() {
 
+        if (syncronized_with_ERP)
+            startTime = sharedBuffer.getStartTime();
+
         if (countdays == -1) {
             countdays++;
             System.out.println("Current Day: " + countdays);
@@ -157,19 +155,21 @@ public class MES {
 
         long time = System.currentTimeMillis();
 
-        if (time >= getCurrentTime() * 1000 + startTime + 1000) {
-            setCurrentTime((time - startTime) / 1000);
+        if (startTime != 0) {
+            if (time >= getCurrentTime() * 1000 + startTime + 1000) {
+                setCurrentTime((time - startTime) / 1000);
 
-            if ((int) getCurrentTime() / oneDay > countdays) {
-                countdays = (int) getCurrentTime() / oneDay;
-                System.out.println("Current Day: " + countdays);
+                if ((int) getCurrentTime() / oneDay > countdays) {
+                    countdays = (int) getCurrentTime() / oneDay;
+                    System.out.println("Current Day: " + countdays);
+                }
             }
         }
     }
 
     public void receiveInternalOrders() {
 
-        String internalOrdersConcat = getErp_to_Mes().receivingOrdersFromERP();
+        String internalOrdersConcat = sharedBuffer.getInternalOrdersConcat();
         if (internalOrdersConcat.equals(null))
             return;
         //System.out.println(internalOrdersConcat);
@@ -286,14 +286,32 @@ public class MES {
             }
         }
 
-        // FALTA agora codficar esta mensagem e enviar para o ERP !!!
-        // Basta o orderID, e os tempos medios
+        // Set na string do MES para depois ser enviado para o ERP
+        sharedBuffer.setFinishedOrdersTimes(encodeOrderTimes());
 
+    }
+
+    private String encodeOrderTimes() {
+
+        String finishedOrders = new String();
+
+        for (piecesHistory curr : getPiecesHistories()) {
+            if (curr.getMeanProductionTime() != 0 && curr.getMeanTimeInSFS() != 0) {
+                finishedOrders = finishedOrders.concat(Integer.toString(curr.getManufacturingID()));
+                finishedOrders = finishedOrders.concat("@");
+                finishedOrders = finishedOrders.concat(Integer.toString(curr.getMeanProductionTime()));
+                finishedOrders = finishedOrders.concat("@");
+                finishedOrders = finishedOrders.concat(Integer.toString(curr.getMeanTimeInSFS()));
+                finishedOrders = finishedOrders.concat("/");
+            }
+        }
+
+        return finishedOrders;
     }
 
     public void testMES_zonaA() {
 
-        setStartTime(System.currentTimeMillis(), true);
+        setStartTime(false);
 
         addReceiveOrder(new receiveOrder(
                 0,
@@ -319,7 +337,7 @@ public class MES {
 
     public void testMES_zonaC() {
 
-        setStartTime(System.currentTimeMillis(), true);
+        setStartTime(false);
         int rawMaterialID = 0;
         for (int i = 0; i < 10; i++) {
 
@@ -352,7 +370,7 @@ public class MES {
     }
 
     public void testMES_zonaE() {
-        setStartTime(System.currentTimeMillis(), true);
+        setStartTime(false);
         shippingOrder shipship = new shippingOrder(1, 5, 5);
 
         addShippingOrder(shipship);

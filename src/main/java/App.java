@@ -3,9 +3,9 @@ import Controllers.ZoneE;
 import Controllers.zoneA;
 import Controllers.zoneC;
 import OPC_UA.opcConnection;
-import comsProtocols.ERP_to_MES;
 import Viewers.MES_Viewer;
-import comsProtocols.tcpServer;
+import comsProtocols.ClientTCP;
+import comsProtocols.sharedResources;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,31 +15,35 @@ public class App {
 
     private static String ERP_IP = "127.0.0.1";
     private static int ERP_to_MES_port = 20000;
-    private static int MES_to_ERP_port = 20001;
 
 
     public static void main(String args[]) {
 
-        MES mes = new MES(new MES_Viewer());
+        sharedResources sharedBuffer = new sharedResources();
+
+        MES mes = new MES(new MES_Viewer(), sharedBuffer);
 
 //        mes.testMES_zonaA();
 //        mes.testMES_zonaC();
 //        mes.testMES_zonaE();
+        ClientTCP client = new ClientTCP();
+        client.startConnection(ERP_IP, ERP_to_MES_port, sharedBuffer);
 
-        ERP_to_MES erp2mes = new ERP_to_MES();
-        erp2mes.openConnection(ERP_to_MES_port,ERP_IP);
-        mes.setErp_to_Mes(erp2mes);
-
-        tcpServer MESserver = new tcpServer();
-        MESserver.start(MES_to_ERP_port,mes.getPieceHistories_str());
-
+//        tcpServer MESserver = new tcpServer();
+//        MESserver.start(MES_to_ERP_port,mes.getPieceHistories_str());
+//
+//        ERP_to_MES erp2mes = new ERP_to_MES();
+//        erp2mes.openConnection(ERP_to_MES_port,ERP_IP);
+//        mes.setErp_to_Mes(erp2mes);
+//
+//
         /* For synchronize time in ERP and MES */
-        mes.setStartTime(0, false);
+        mes.setStartTime(true);
         /* *************************************** */
 
-        opcConnection opcConnection = new opcConnection();
-        opcConnection.createOPCconnection();
-        mes.setOpcClient(opcConnection);
+//        opcConnection opcConnection = new opcConnection();
+//        opcConnection.createOPCconnection();
+//        mes.setOpcClient(opcConnection);
 
         ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(5);
         schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
