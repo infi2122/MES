@@ -4,6 +4,7 @@ import Models.*;
 import OPC_UA.opcConnection;
 import Viewers.MES_Viewer;
 import comsProtocols.sharedResources;
+import jdk.swing.interop.SwingInterOpUtils;
 
 import java.util.ArrayList;
 
@@ -170,8 +171,9 @@ public class MES {
     public void receiveInternalOrders() {
 
         String internalOrdersConcat = sharedBuffer.getInternalOrdersConcat();
-        if (internalOrdersConcat.equals(null))
+        if (internalOrdersConcat.equals("null") || internalOrdersConcat.equals("___") || internalOrdersConcat == null) {
             return;
+        }
         //System.out.println(internalOrdersConcat);
         addNewInternalOrders(internalOrdersConcat);
 
@@ -379,14 +381,17 @@ public class MES {
     // ******** VIEW METHODS *********
 
     public void displayInternalOrders() {
+
         getMes_viewer().showInternalOrders(getReceiveOrder(), getProductionOrder(), getShippingOrder());
     }
 
     public void displayEntryWH() {
+
         getMes_viewer().showEntryWH(getEntryWH());
     }
 
     public void displayExitWH() {
+
         getMes_viewer().showExitWH(getExitWH());
     }
 

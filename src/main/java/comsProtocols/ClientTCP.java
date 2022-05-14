@@ -10,9 +10,10 @@ public class ClientTCP {
 
     /* Thread timing */
     private int initialDelay = 0;
-    private int periodicDelay = 30;
+    private int periodicDelay = 20;
 
     private Socket socket;
+
 
     public void startConnection(String IP, int port, sharedResources sharedBuffer) {
         try {
@@ -46,6 +47,7 @@ public class ClientTCP {
         private OutputStreamWriter osw;
         private BufferedWriter bw;
         private sharedResources sharedBuffer;
+        private boolean odd = true;
 
         public serverHandler(Socket socket, sharedResources sharedBuffer) {
             this.socket = socket;
@@ -53,11 +55,14 @@ public class ClientTCP {
         }
 
         public void run() {
-
-            sendRequest("startTime");
-            sendRequest("internalOrders");
-            acceptRequest("finishedOrdersTimes");
-
+            if (odd) {
+                sendRequest("startTime");
+                sendRequest("internalOrders");
+                //odd = false;
+            } else {
+                acceptRequest("finishedOrdersTimes");
+                odd = true;
+            }
         }
 
         public void sendRequest(String feature) {
@@ -74,11 +79,9 @@ public class ClientTCP {
                 switch (feature) {
                     case "startTime":
                         sharedBuffer.setStartTime(Long.parseLong(br.readLine()));
-                        System.out.println("start time OK");
                         break;
                     case "internalOrders":
                         sharedBuffer.setInternalOrdersConcat(br.readLine());
-                        System.out.println("internal orders OK");
                     default:
                         break;
                 }

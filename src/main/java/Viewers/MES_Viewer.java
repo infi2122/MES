@@ -16,7 +16,7 @@ public class MES_Viewer {
 
         for (receiveOrder curr : recv) {
             System.out.println("rawMaterial ID: " + curr.getRawMaterialOrderID() + " arrives on day: " + curr.getArrivalDate() +
-                    " Type: " + curr.getPieceType() + " Quantity: " + curr.getQty() );
+                    " Type: " + curr.getPieceType() + " Quantity: " + curr.getQty());
 
         }
 
@@ -25,8 +25,8 @@ public class MES_Viewer {
             System.out.println("manufacuringID: " + curr.getManufacturingID()
                     + " of type: " + curr.getFinalType()
                     + " starts on day: " + curr.getStartDate());
-            for(rawMaterial cur2: curr.getRawMaterials() ){
-                System.out.println("RawID: "+cur2.getRawMaterialID() +" Qty used: "+ cur2.getQty_used() );
+            for (rawMaterial cur2 : curr.getRawMaterials()) {
+                System.out.println("RawID: " + cur2.getRawMaterialID() + " Qty used: " + cur2.getQty_used());
             }
         }
 
@@ -41,6 +41,8 @@ public class MES_Viewer {
 
     public void showEntryWH(entryWarehouse entryWH) {
 
+        if (entryWH.getPieces().size() == 0)
+            return;
         System.out.println("***** Entry Warehouse *****");
 
         for (piece curr : entryWH.getPieces()) {
@@ -50,14 +52,15 @@ public class MES_Viewer {
     }
 
     public void showExitWH(exitWarehouse exitWH) {
-
+        if (exitWH.getPieces().size() == 0)
+            return;
         System.out.println("***** Exit Warehouse *****");
 
         for (piece curr : exitWH.getPieces()) {
             System.out.println("rawMaterial ID: " + curr.getRawMaterialID() + " piece ID:" + curr.getPieceID()
-                                + " arrived on day: " + curr.getWHarrival()
-                                + " and started production: "+ curr.getProductionStart()
-                                + " and ended production: "+ curr.getProductionEnd() );
+                    + " arrived on day: " + curr.getWHarrival()
+                    + " and started production: " + curr.getProductionStart()
+                    + " and ended production: " + curr.getProductionEnd());
         }
 
     }
