@@ -171,7 +171,7 @@ public class MES {
     public void receiveInternalOrders() {
 
         String internalOrdersConcat = sharedBuffer.getInternalOrdersConcat();
-        if (internalOrdersConcat.equals("null") || internalOrdersConcat.equals("___") || internalOrdersConcat == null) {
+        if (internalOrdersConcat.equals("null") || internalOrdersConcat.equals("___") || internalOrdersConcat.equals("empty")) {
             return;
         }
         //System.out.println(internalOrdersConcat);
@@ -273,29 +273,31 @@ public class MES {
 
 
     public void orderTimes() {
-
+        if (getPiecesHistories().size() == 0)
+            return;
         for (piecesHistory curr : getPiecesHistories()) {
-            if (curr.getMeanProductionTime() == 0 || curr.getMeanTimeInSFS() == 0) {
-                int sumProductionTime = 0;
+            if (curr.getMeanProductionTime() == 0 && curr.getMeanTimeInSFS() == 0) {
+                long sumProductionTime = 0;
                 int sumSFStime = 0;
 
                 for (piece p : curr.getPieces()) {
-                    sumProductionTime += (p.getProductionEnd() - p.getProductionStart()) / oneDay;
+                    sumProductionTime += (p.getProductionEnd() - p.getProductionStart()) ;
                     sumSFStime += p.getShippingEnd() - p.getWHarrival();
                 }
-                curr.setMeanProductionTime(sumProductionTime / curr.getQty());
+                curr.setMeanProductionTime((int) sumProductionTime / curr.getQty());
                 curr.setMeanTimeInSFS(sumSFStime / curr.getQty());
             }
         }
 
         // Set na string do MES para depois ser enviado para o ERP
         sharedBuffer.setFinishedOrdersTimes(encodeOrderTimes());
+        System.out.println("FinishedOrders: " + sharedBuffer.getFinishedOrdersTimes());
 
     }
 
     private String encodeOrderTimes() {
 
-        String finishedOrders = new String();
+        String finishedOrders = "";
 
         for (piecesHistory curr : getPiecesHistories()) {
             if (curr.getMeanProductionTime() != 0 && curr.getMeanTimeInSFS() != 0) {
@@ -373,7 +375,34 @@ public class MES {
 
     public void testMES_zonaE() {
         setStartTime(false);
-        shippingOrder shipship = new shippingOrder(1, 5, 5);
+        for(int i=0;i<5;i++){
+            piece p = new piece(
+                    i,
+                    0,
+                    1,
+                    5,
+                    2,
+                    122+i,
+                    140+i);
+
+            addPiece2exitWH(p);
+        }
+        for(int i=0;i<5;i++){
+            piece p = new piece(
+                    i+5,
+                    2,
+                    2,
+                    4,
+                    3,
+                    12+i,
+                    14+i);
+
+            addPiece2exitWH(p);
+        }
+
+//        addProductionOrder(new productionOrder(1,5,1,5));
+
+        shippingOrder shipship = new shippingOrder(1, 2, 5);
 
         addShippingOrder(shipship);
     }
@@ -393,6 +422,9 @@ public class MES {
     public void displayExitWH() {
 
         getMes_viewer().showExitWH(getExitWH());
+    }
+    public void displayPieceHistory() {
+        getMes_viewer().showPiecesHistory(getPiecesHistories());
     }
 
 

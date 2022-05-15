@@ -108,7 +108,7 @@ public class zoneA extends Thread {
                     //System.out.println("RECV Type 1");
                 } else {
                     setRecvType2(true);
-                   //System.out.println("RECV Type 2");
+                    //System.out.println("RECV Type 2");
                 }
                 return curr;
             }
@@ -139,7 +139,7 @@ public class zoneA extends Thread {
 
             }
         }
-        if(curr_receiveOrder.getQty() == 0 ){
+        if (curr_receiveOrder.getQty() == 0) {
             setRecvType1(false);
             setRecvType2(false);
             curr_receiveOrder = null;
@@ -152,7 +152,7 @@ public class zoneA extends Thread {
 
         boolean convP1_sensor = mes.getOpcClient().readBool("Load1_sensor", "IO");
         boolean convP2_sensor = mes.getOpcClient().readBool("Load2_sensor", "IO");
-        boolean load0_sensor = mes.getOpcClient().readBool("Load0_sensor","IO");
+        boolean load0_sensor = mes.getOpcClient().readBool("Load0_sensor", "IO");
 
         // RE de convLoad_0
         if (!oldLoad0_sensor && load0_sensor) {
@@ -160,7 +160,7 @@ public class zoneA extends Thread {
                 convLoad0 = new piece(
                         convP1.getPieceID(),
                         curr_receiveOrder.getRawMaterialOrderID(),
-                        convP1.getWHarrival()
+                        convP1.getWHarrival() * one_day
                         );
                 convP1 = null;
             }
@@ -168,7 +168,7 @@ public class zoneA extends Thread {
                 convLoad0 = new piece(
                         convP2.getPieceID(),
                         curr_receiveOrder.getRawMaterialOrderID(),
-                        convP2.getWHarrival()
+                        convP2.getWHarrival() * one_day
                 );
                 convP2 = null;
             }

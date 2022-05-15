@@ -181,6 +181,7 @@ public class ZoneE extends Thread {
 
         return RE;
     }
+
     private boolean RE_pusher2_pieceDelivered() {
         boolean new_pusher2_pieceDelivered = mes.getOpcClient().readBool("pusher2_pieceDelivered", "GVL");
         boolean RE = !old_pusher2_pieceDelivered && new_pusher2_pieceDelivered;
@@ -188,6 +189,7 @@ public class ZoneE extends Thread {
 
         return RE;
     }
+
     private boolean RE_pusher3_pieceDelivered() {
         boolean new_pusher3_pieceDelivered = mes.getOpcClient().readBool("pusher3_pieceDelivered", "GVL");
         boolean RE = !old_pusher3_pieceDelivered && new_pusher3_pieceDelivered;
@@ -209,14 +211,13 @@ public class ZoneE extends Thread {
         for (piece bolacha : piecesInZoneE) {
             if (bolacha.getPieceID() == pieceId) {
                 p = bolacha;
-
                 break;
             }
         }
 
         // Procura a pieceHistory com o mesmo orderID que a peça
         for (piecesHistory pH : mes.getPiecesHistories()) {
-            assert p != null;
+            if (p == null) throw new AssertionError();
             if (pH.getManufacturingID() == p.getOrderID()) {
                 pH.addNewPieces(p);
                 piecesInZoneE.remove(p);
@@ -230,15 +231,18 @@ public class ZoneE extends Thread {
         int prodOrderQty = 0;
 
         for (productionOrder pO : mes.getProductionOrder()) {
+            assert p != null;
             if (pO.getManufacturingID() == p.getOrderID()) {
                 prodOrderQty = pO.getQty();
+                break;
             }
         }
 
         // Criar nova pieceHistory, adicionar a peça a essa nova pH, remover peça da zonaE, adicionar pH ao MES
+        assert p != null;
         piecesHistory newPiecesHistory = new piecesHistory(p.getOrderID(), prodOrderQty);
         newPiecesHistory.addNewPieces(p);
-        mes.getPiecesHistories().add(newPiecesHistory);
+        mes.addPiecesHistories(newPiecesHistory);
         piecesInZoneE.remove(p);
 
     }

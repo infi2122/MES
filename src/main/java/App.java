@@ -13,44 +13,38 @@ import java.util.concurrent.TimeUnit;
 
 public class App {
 
-    private static String ERP_IP = "127.0.0.1";
-    private static int ERP_to_MES_port = 20000;
+    private static final String ERP_IP = "127.0.0.1";
+    private static final int ERP_to_MES_port = 20000;
 
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         sharedResources sharedBuffer = new sharedResources();
+        sharedBuffer.setInternalOrdersConcat("empty");
+        sharedBuffer.setFinishedOrdersTimes("empty");
 
         MES mes = new MES(new MES_Viewer(), sharedBuffer);
 
 //        mes.testMES_zonaA();
 //        mes.testMES_zonaC();
-//        mes.testMES_zonaE();
+//       mes.testMES_zonaE();
         ClientTCP client = new ClientTCP();
-        client.startConnection(ERP_IP, ERP_to_MES_port, sharedBuffer);
+        client.startConnection(ERP_IP, ERP_to_MES_port, sharedBuffer,0,59);
 
-//        tcpServer MESserver = new tcpServer();
-//        MESserver.start(MES_to_ERP_port,mes.getPieceHistories_str());
-//
-//        ERP_to_MES erp2mes = new ERP_to_MES();
-//        erp2mes.openConnection(ERP_to_MES_port,ERP_IP);
-//        mes.setErp_to_Mes(erp2mes);
-//
-//
         /* For synchronize time in ERP and MES */
         mes.setStartTime(true);
         /* *************************************** */
 
-//        opcConnection opcConnection = new opcConnection();
-//        opcConnection.createOPCconnection();
-//        mes.setOpcClient(opcConnection);
+        opcConnection opcConnection = new opcConnection();
+        opcConnection.createOPCconnection();
+        mes.setOpcClient(opcConnection);
 
-        ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(2);
-        schedulerERP.scheduleAtFixedRate(new myMES(mes), 1, 60000, TimeUnit.MILLISECONDS);
+        ScheduledExecutorService schedulerERP = Executors.newScheduledThreadPool(5);
+        schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
-//        schedulerERP.scheduleAtFixedRate(new zoneA(mes), 0, 200, TimeUnit.MILLISECONDS);
-//        schedulerERP.scheduleAtFixedRate(new zoneC(mes), 0, 100, TimeUnit.MILLISECONDS);
-//        schedulerERP.scheduleAtFixedRate(new ZoneE(mes), 0, 200, TimeUnit.MILLISECONDS);
+        schedulerERP.scheduleAtFixedRate(new zoneA(mes), 0, 200, TimeUnit.MILLISECONDS);
+        schedulerERP.scheduleAtFixedRate(new zoneC(mes), 0, 100, TimeUnit.MILLISECONDS);
+        schedulerERP.scheduleAtFixedRate(new ZoneE(mes), 0, 200, TimeUnit.MILLISECONDS);
 
     }
 
@@ -69,7 +63,8 @@ public class App {
                 mes.displayInternalOrders();
                 mes.displayEntryWH();
                 mes.displayExitWH();
-                //mes.orderTimes();
+                mes.displayPieceHistory();
+                mes.orderTimes();
             }
         }
 
