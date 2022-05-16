@@ -14,6 +14,7 @@ public class zoneC<MCT_table> extends Thread {
 
     private final int MAXIMUM_CAPACITY = 6;
     private static int oneDay = 60;
+    private int curr_PO_day = 0;
 
     private MES mes;
 
@@ -36,6 +37,7 @@ public class zoneC<MCT_table> extends Thread {
 
         synchronized (mes) {
             defineMCT();
+            set_curr_PO_day();
             unloadToSFS();
             storeInExitWH();
             updateExitWH_state();
@@ -121,7 +123,7 @@ public class zoneC<MCT_table> extends Thread {
             // Seleciona as production orders do dia atual e anteriores, se houverem
             if (!is_zoneC_full() && is_W1in1_free()) {
                 // Cabem peças na zona C e o tapete W1in1 está livre
-                if (currProdOrder.getStartDate() <= currDay) {
+                if (currProdOrder.getStartDate() <= curr_PO_day && currProdOrder.getStartDate() <= currDay) {
                     for (rawMaterial curr : currProdOrder.getRawMaterials()) {
                         // Se a production order necessitar do raw material
                         if (curr.getQty_used() > 0) {
@@ -305,6 +307,21 @@ public class zoneC<MCT_table> extends Thread {
 
         return returnPiece;
 
+    }
+
+    private void set_curr_PO_day() {
+        curr_PO_day = Integer.MAX_VALUE;
+        for (productionOrder currPO : mes.getProductionOrder()) {
+//            Se a PO ainda nao esta completa e ja passou o dia de começar a fazer
+            if (!currPO.is_Done() && currPO.getStartDate() <= mes.getCountdays()) {
+
+//                O curr_PO_day vai ser a data mais baixa dos POs incompletos
+                if( curr_PO_day > currPO.getStartDate() ){
+                    curr_PO_day = currPO.getStartDate();
+                }
+            }
+
+        }
     }
 
 }

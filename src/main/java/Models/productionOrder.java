@@ -57,4 +57,12 @@ public class productionOrder {
     public void setPieces_done(int pieces_done) {
         this.pieces_done = pieces_done;
     }
+
+    public boolean is_Done(){
+        for (rawMaterial currRM : getRawMaterials()) {
+            if( currRM.getQty_used() > 0) return false;
+        }
+        return true;
+    }
+
 }
