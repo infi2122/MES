@@ -18,6 +18,23 @@ public class zoneC<MCT_table> extends Thread {
 
     private MES mes;
 
+    // Variáveis de estado para os rising edges //
+    private boolean old_M11Working;
+    private boolean old_M12Working;
+    private boolean old_M13Working;
+    private boolean old_M21Working;
+    private boolean old_M22Working;
+    private boolean old_M23Working;
+
+    // Variáveis para contagem de tempo de trabalho das máquinas
+    private int M11InitTime = 0;
+    private int M12InitTime = 0;
+    private int M13InitTime = 0;
+    private int M21InitTime = 0;
+    private int M22InitTime = 0;
+    private int M23InitTime = 0;
+
+
     public zoneC(MES mes1) {
         this.mes = mes1;
     }
@@ -32,6 +49,8 @@ public class zoneC<MCT_table> extends Thread {
 
     int cnt = 0;
 
+
+
     @Override
     public void run() {
 
@@ -41,6 +60,11 @@ public class zoneC<MCT_table> extends Thread {
             unloadToSFS();
             storeInExitWH();
             updateExitWH_state();
+
+            // estatísticas e cenas
+            //updateMachineCounters();
+            //updateMachineWorkingTime();
+
             if (cnt / 100 == 1) {
 //                System.out.println("** Pieces on the zone C Floor **");
 //                for (piece curr : piecesOnFloor) {
@@ -321,6 +345,205 @@ public class zoneC<MCT_table> extends Thread {
                 }
             }
 
+        }
+    }
+
+
+    // ********** Funções relativas à contagem de peças e de tempos nas máquinas ********* //
+
+    // Detetores de Rising Edge
+    private boolean RE_M11Working() {
+        boolean new_M11Working = mes.getOpcClient().readBool("M11Working", "GVL");
+        boolean RE = new_M11Working && !old_M11Working;
+        old_M11Working = new_M11Working;
+
+        return RE;
+    }
+    private boolean RE_M12Working() {
+        boolean new_M12Working = mes.getOpcClient().readBool("M12Working", "GVL");
+        boolean RE = new_M12Working && !old_M12Working;
+        old_M12Working = new_M12Working;
+
+        return RE;
+    }
+    private boolean RE_M13Working() {
+        boolean new_M13Working = mes.getOpcClient().readBool("M13Working", "GVL");
+        boolean RE = new_M13Working && !old_M13Working;
+        old_M13Working = new_M13Working;
+
+        return RE;
+    }
+    private boolean RE_M21Working() {
+        boolean new_M21Working = mes.getOpcClient().readBool("M21Working", "GVL");
+        boolean RE = new_M21Working && !old_M21Working;
+        old_M21Working = new_M21Working;
+
+        return RE;
+    }
+    private boolean RE_M22Working() {
+        boolean new_M22Working = mes.getOpcClient().readBool("M22Working", "GVL");
+        boolean RE = new_M22Working && !old_M22Working;
+        old_M22Working = new_M22Working;
+
+        return RE;
+    }
+    private boolean RE_M23Working() {
+        boolean new_M23Working = mes.getOpcClient().readBool("M23Working", "GVL");
+        boolean RE = new_M23Working && !old_M23Working;
+        old_M23Working = new_M23Working;
+
+        return RE;
+    }
+
+    // Detetores de Falling Edge
+    private boolean FE_M11Working() {
+        boolean new_M11Working = mes.getOpcClient().readBool("M11Working", "GVL");
+        boolean FE = !new_M11Working && old_M11Working;
+        old_M11Working = new_M11Working;
+
+        return FE;
+    }
+    private boolean FE_M12Working() {
+        boolean new_M12Working = mes.getOpcClient().readBool("M12Working", "GVL");
+        boolean FE = !new_M12Working && old_M12Working;
+        old_M12Working = new_M12Working;
+
+        return FE;
+    }
+    private boolean FE_M13Working() {
+        boolean new_M13Working = mes.getOpcClient().readBool("M13Working", "GVL");
+        boolean FE = !new_M13Working && old_M13Working;
+        old_M13Working = new_M13Working;
+
+        return FE;
+    }
+    private boolean FE_M21Working() {
+        boolean new_M21Working = mes.getOpcClient().readBool("M21Working", "GVL");
+        boolean FE = !new_M21Working && old_M21Working;
+        old_M21Working = new_M21Working;
+
+        return FE;
+    }
+    private boolean FE_M22Working() {
+        boolean new_M22Working = mes.getOpcClient().readBool("M22Working", "GVL");
+        boolean FE = !new_M22Working && old_M22Working;
+        old_M22Working = new_M22Working;
+
+        return FE;
+    }
+    private boolean FE_M23Working() {
+        boolean new_M23Working = mes.getOpcClient().readBool("M23Working", "GVL");
+        boolean FE = !new_M23Working && old_M23Working;
+        old_M23Working = new_M23Working;
+
+        return FE;
+    }
+
+    // Contadores de peças nas máquinas
+    private void updateMachineCounters() {
+        if (FE_M11Working()) {
+            // Lê o tipo de peça que foi feito
+            int pieceType = mes.getOpcClient().readInt("M11PieceMadeType", "GVL");
+
+            // Incrementa o contador desse tipo de peça para a máquina M11
+            mes.incrementM11Counter(pieceType);
+        }
+        if (FE_M12Working()) {
+            // Lê o tipo de peça que foi feito
+            int pieceType = mes.getOpcClient().readInt("M12PieceMadeType", "GVL");
+
+            // Incrementa o contador desse tipo de peça para a máquina M12
+            mes.incrementM12Counter(pieceType);
+        }
+        if (FE_M13Working()) {
+            // Lê o tipo de peça que foi feito
+            int pieceType = mes.getOpcClient().readInt("M13PieceMadeType", "GVL");
+
+            // Incrementa o contador desse tipo de peça para a máquina M13
+            mes.incrementM13Counter(pieceType);
+        }
+        if (FE_M21Working()) {
+            // Lê o tipo de peça que foi feito
+            int pieceType = mes.getOpcClient().readInt("M21PieceMadeType", "GVL");
+
+            // Incrementa o contador desse tipo de peça para a máquina M21
+            mes.incrementM21Counter(pieceType);
+        }
+        if (FE_M22Working()) {
+            // Lê o tipo de peça que foi feito
+            int pieceType = mes.getOpcClient().readInt("M22PieceMadeType", "GVL");
+
+            // Incrementa o contador desse tipo de peça para a máquina M22
+            mes.incrementM22Counter(pieceType);
+        }
+        if (FE_M23Working()) {
+            // Lê o tipo de peça que foi feito
+            int pieceType = mes.getOpcClient().readInt("M23PieceMadeType", "GVL");
+
+            // Incrementa o contador desse tipo de peça para a máquina M23
+            mes.incrementM23Counter(pieceType);
+        }
+    }
+
+    private void updateMachineWorkingTime() {
+        // Máquina M11
+        if (RE_M11Working()) {
+            M11InitTime = (int) mes.getCurrentTime();
+        }
+        else if (FE_M11Working() && M11InitTime > 0) {
+            int finalTime = (int) mes.getCurrentTime();
+            mes.incrementM11WorkTime(finalTime - M11InitTime);
+            M11InitTime = 0;
+        }
+
+        // Máquina M12
+        if (RE_M12Working()) {
+            M12InitTime = (int) mes.getCurrentTime();
+        }
+        else if (FE_M12Working() && M12InitTime > 0) {
+            int finalTime = (int) mes.getCurrentTime();
+            mes.incrementM12WorkTime(finalTime - M12InitTime);
+            M12InitTime = 0;
+        }
+
+        // Máquina M13
+        if (RE_M13Working()) {
+            M13InitTime = (int) mes.getCurrentTime();
+        }
+        else if (FE_M13Working() && M13InitTime > 0) {
+            int finalTime = (int) mes.getCurrentTime();
+            mes.incrementM13WorkTime(finalTime - M13InitTime);
+            M13InitTime = 0;
+        }
+
+        // Máquina M21
+        if (RE_M21Working()) {
+            M21InitTime = (int) mes.getCurrentTime();
+        }
+        else if (FE_M21Working() && M21InitTime > 0) {
+            int finalTime = (int) mes.getCurrentTime();
+            mes.incrementM21WorkTime(finalTime - M21InitTime);
+            M21InitTime = 0;
+        }
+
+        // Máquina M22
+        if (RE_M22Working()) {
+            M22InitTime = (int) mes.getCurrentTime();
+        }
+        else if (FE_M22Working() && M22InitTime > 0) {
+            int finalTime = (int) mes.getCurrentTime();
+            mes.incrementM22WorkTime(finalTime - M22InitTime);
+            M22InitTime = 0;
+        }
+
+        // Máquina M23
+        if (RE_M23Working()) {
+            M23InitTime = (int) mes.getCurrentTime();
+        }
+        else if (FE_M23Working() && M23InitTime > 0) {
+            int finalTime = (int) mes.getCurrentTime();
+            mes.incrementM23WorkTime(finalTime - M23InitTime);
+            M23InitTime = 0;
         }
     }
 

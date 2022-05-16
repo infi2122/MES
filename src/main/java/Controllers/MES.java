@@ -33,6 +33,19 @@ public class MES {
     private int[] pusher2Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     private int[] pusher3Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+    private int[] machine11Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine12Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine13Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine21Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine22Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine23Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    private int machine11WorkingTime = 0;
+    private int machine12WorkingTime = 0;
+    private int machine13WorkingTime = 0;
+    private int machine21WorkingTime = 0;
+    private int machine22WorkingTime = 0;
+    private int machine23WorkingTime = 0;
 
     public MES(MES_Viewer mes_viewer, sharedResources sharedBuffer) {
         this.mes_viewer = mes_viewer;
@@ -433,30 +446,26 @@ public class MES {
 
 
 
-    // *** Funções relacionadas com os contadores de peças na zona E *** //
+    // ****************** Funções relacionadas com os contadores de peças na zona E **************** //
 
-    // ---- Retorna o novo valor da contagem --- //
+    // ---- Retornam o novo valor da contagem --- //
     public int incrementPusher1Counter(int pieceType) {
         return ++pusher1Counter[pieceType-1];
     }
-    // ---- Retorna o novo valor da contagem --- //
     public int incrementPusher2Counter(int pieceType) {
         return ++pusher2Counter[pieceType-1];
     }
-    // ---- Retorna o novo valor da contagem --- //
     public int incrementPusher3Counter(int pieceType) {
         return ++pusher3Counter[pieceType-1];
     }
 
-    // ---- Retorna o valor da contagem --- //
+    // ---- Retornam o valor da contagem --- //
     public int getPusher1Counter(int pieceType) {
         return pusher1Counter[pieceType-1];
     }
-    // ---- Retorna o valor da contagem --- //
     public int getPusher2Counter(int pieceType) {
         return pusher2Counter[pieceType-1];
     }
-    // ---- Retorna o valor da contagem --- //
     public int getPusher3Counter(int pieceType) {
         return pusher3Counter[pieceType-1];
     }
@@ -483,4 +492,123 @@ public class MES {
         return counter;
     }
 
+    // ******************************************************************************************* //
+
+
+
+    // ******************** Funções relacionadas com os contadores de peças maquinadas ******************* //
+
+    // ---- Retornam o novo valor da contagem ---- //
+    public int incrementM11Counter(int pieceType) {
+        return ++machine11Counter[pieceType-1];
+    }
+    public int incrementM12Counter(int pieceType) {
+        return ++machine12Counter[pieceType-1];
+    }
+    public int incrementM13Counter(int pieceType) {
+        return ++machine13Counter[pieceType-1];
+    }
+    public int incrementM21Counter(int pieceType) {
+        return ++machine21Counter[pieceType-1];
+    }
+    public int incrementM22Counter(int pieceType) {
+        return ++machine22Counter[pieceType-1];
+    }
+    public int incrementM23Counter(int pieceType) {
+        return ++machine23Counter[pieceType-1];
+    }
+
+    // ---- Retornam o valor da contagem ---- //
+    public int getM11Counter(int pieceType) {
+        return machine11Counter[pieceType-1];
+    }
+    public int getM12Counter(int pieceType) {
+        return machine12Counter[pieceType-1];
+    }
+    public int getM13Counter(int pieceType) {
+        return machine13Counter[pieceType-1];
+    }
+    public int getM21Counter(int pieceType) {
+        return machine21Counter[pieceType-1];
+    }
+    public int getM22Counter(int pieceType) {
+        return machine22Counter[pieceType-1];
+    }
+    public int getM23Counter(int pieceType) {
+        return machine23Counter[pieceType-1];
+    }
+
+    // ---- Retorna a quantidade total de peças operadas por uma máquina ---- //
+    // X corresponde à máquina X no MCT, ou seja:
+    // X = {0,1,2,3,4,5} <=> M = {M11, M12, M13, M23, M21, M22}
+    public int getMachineXTotalCounter(int X) {
+        int counter = 0;
+
+        switch(X) {
+            case 0 -> {
+                for (int i : machine11Counter) counter += machine11Counter[i];
+                return counter;
+            }
+            case 1 -> {
+                for (int i : machine12Counter) counter += machine12Counter[i];
+                return counter;
+            }
+            case 2 -> {
+                for (int i : machine13Counter) counter += machine13Counter[i];
+                return counter;
+            }
+            case 3 -> {
+                for (int i : machine23Counter) counter += machine23Counter[i];
+                return counter;
+            }
+            case 4 -> {
+                for (int i : machine21Counter) counter += machine21Counter[i];
+                return counter;
+            }
+            case 5 -> {
+                for (int i : machine22Counter) counter += machine22Counter[i];
+                return counter;
+            }
+            default -> {
+                System.out.println("A máquina referida não existe! Valor de X tem que estar entre 0 e 5");
+                return -1;
+            }
+
+        }
+    }
+
+    // ************************************************************************************************* //
+
+
+    // ********** Funções relativas à contagem do tempo de trabalho de cada máquina ********** //
+
+    // Incrementam o tempo que as máquinas estiveram a operar
+    public void incrementM11WorkTime(int delta){
+        machine11WorkingTime += delta;
+    }
+    public void incrementM12WorkTime(int delta){
+        machine12WorkingTime += delta;
+    }
+    public void incrementM13WorkTime(int delta){
+        machine13WorkingTime += delta;
+    }
+    public void incrementM21WorkTime(int delta){
+        machine21WorkingTime += delta;
+    }
+    public void incrementM22WorkTime(int delta){
+        machine22WorkingTime += delta;
+    }
+    public void incrementM23WorkTime(int delta){
+        machine23WorkingTime += delta;
+    }
+
+    // Retornam os tempos que as máquinas estiveram a operar
+    public int getM11WorkingTime() { return machine11WorkingTime;}
+    public int getM12WorkingTime() { return machine12WorkingTime;}
+    public int getM13WorkingTime() { return machine13WorkingTime;}
+    public int getM21WorkingTime() { return machine21WorkingTime;}
+    public int getM22WorkingTime() { return machine22WorkingTime;}
+    public int getM23WorkingTime() { return machine23WorkingTime;}
+
+    // ************************************************************************************** //
 }

@@ -32,7 +32,7 @@ public class ZoneE extends Thread {
             handlePlacementOfPieces();
             updatePlacingPieceFlag();
 
-            setShippingTimmingsAndCounters();
+            //setShippingTimmingsAndCounters();
 
         }
     }
