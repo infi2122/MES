@@ -29,6 +29,10 @@ public class MES {
     private entryWarehouse entryWH;
     private exitWarehouse exitWH;
 
+    private int[] pusher1Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] pusher2Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] pusher3Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 
     public MES(MES_Viewer mes_viewer, sharedResources sharedBuffer) {
         this.mes_viewer = mes_viewer;
@@ -427,5 +431,56 @@ public class MES {
         getMes_viewer().showPiecesHistory(getPiecesHistories());
     }
 
+
+
+    // *** Funções relacionadas com os contadores de peças na zona E *** //
+
+    // ---- Retorna o novo valor da contagem --- //
+    public int incrementPusher1Counter(int pieceType) {
+        return ++pusher1Counter[pieceType-1];
+    }
+    // ---- Retorna o novo valor da contagem --- //
+    public int incrementPusher2Counter(int pieceType) {
+        return ++pusher2Counter[pieceType-1];
+    }
+    // ---- Retorna o novo valor da contagem --- //
+    public int incrementPusher3Counter(int pieceType) {
+        return ++pusher3Counter[pieceType-1];
+    }
+
+    // ---- Retorna o valor da contagem --- //
+    public int getPusher1Counter(int pieceType) {
+        return pusher1Counter[pieceType-1];
+    }
+    // ---- Retorna o valor da contagem --- //
+    public int getPusher2Counter(int pieceType) {
+        return pusher2Counter[pieceType-1];
+    }
+    // ---- Retorna o valor da contagem --- //
+    public int getPusher3Counter(int pieceType) {
+        return pusher3Counter[pieceType-1];
+    }
+
+    // ---- Retorna a quantidade total de peças entregues pelo pusher X ---- //
+    public int getPusherXTotalCounter(int X) {
+        int counter = 0;
+
+        switch (X) {
+            case 1 -> {
+                for (int i : pusher1Counter) counter += i;
+                return counter;
+            }
+            case 2 -> {
+                for (int i : pusher2Counter) counter += i;
+                return counter;
+            }
+            case 3 -> {
+                for (int i : pusher3Counter) counter += i;
+                return counter;
+            }
+            default -> System.out.println("That pusher does not exist! Insert value between 1 and 3!");
+        }
+        return counter;
+    }
 
 }

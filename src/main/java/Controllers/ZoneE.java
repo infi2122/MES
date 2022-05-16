@@ -29,15 +29,15 @@ public class ZoneE extends Thread {
     public void run() {
         synchronized (mes) {
 
-            int pieceQtyZoneE = handlePlacementOfPieces();
-//          System.out.println("N pieces in Zone E: " + pieceQtyZoneE);
-
-            setShippingTimmings();
+            handlePlacementOfPieces();
             updatePlacingPieceFlag();
+
+            setShippingTimmingsAndCounters();
+
         }
     }
 
-    public int handlePlacementOfPieces() {
+    public void handlePlacementOfPieces() {
 
         ArrayList<shippingOrder> allShippingOrders = mes.getShippingOrder(); // Obter todas as shipping orders
 
@@ -61,8 +61,6 @@ public class ZoneE extends Thread {
             placingPiece = true;
             int placedPieceId = placePieceInConveyor(); // Coloca essas peças no tapete
         }
-
-        return piecesInZoneE.size();
 
     }
 
@@ -124,7 +122,7 @@ public class ZoneE extends Thread {
         return false;
     }
 
-    public void setShippingTimmings() {
+    public void setShippingTimmingsAndCounters() {
         // Verificar se pusher1 entregou peça
         if (RE_pusher1_pieceDelivered()) {
             // Resetar a flag
@@ -135,6 +133,9 @@ public class ZoneE extends Thread {
 
             // Guardar tempo de entrega dessa peça no piecesInZoneE
             setPieceDeliveryTime(pieceDelivered_id, (int) mes.getCurrentTime());
+
+            // Incrementar contador do pusher1
+            incrementPusherCounters(1, pieceDelivered_id);
 
             // Enviar Peça do piecesInZoneE para o piecesHistory (Ideia do Daniel)
             sendPieceToPieceHistory(pieceDelivered_id);
@@ -153,6 +154,9 @@ public class ZoneE extends Thread {
             // Guardar tempo de entrega dessa peça no piecesInZoneE
             setPieceDeliveryTime(pieceDelivered_id, (int) mes.getCurrentTime());
 
+            // Incrementar contador do pusher2
+            incrementPusherCounters(2, pieceDelivered_id);
+
             // Enviar Peça do piecesInZoneE para o piecesHistory (Ideia do Daniel)
             sendPieceToPieceHistory(pieceDelivered_id);
         }
@@ -169,6 +173,9 @@ public class ZoneE extends Thread {
             // Guardar tempo de entrega dessa peça no piecesInZoneE
             setPieceDeliveryTime(pieceDelivered_id, (int) mes.getCurrentTime());
 
+            // Incrementar contador do pusher3
+            incrementPusherCounters(3, pieceDelivered_id);
+
             // Enviar Peça do piecesInZoneE para o piecesHistory (Ideia do Daniel)
             sendPieceToPieceHistory(pieceDelivered_id);
         }
@@ -181,7 +188,6 @@ public class ZoneE extends Thread {
 
         return RE;
     }
-
     private boolean RE_pusher2_pieceDelivered() {
         boolean new_pusher2_pieceDelivered = mes.getOpcClient().readBool("pusher2_pieceDelivered", "GVL");
         boolean RE = !old_pusher2_pieceDelivered && new_pusher2_pieceDelivered;
@@ -189,7 +195,6 @@ public class ZoneE extends Thread {
 
         return RE;
     }
-
     private boolean RE_pusher3_pieceDelivered() {
         boolean new_pusher3_pieceDelivered = mes.getOpcClient().readBool("pusher3_pieceDelivered", "GVL");
         boolean RE = !old_pusher3_pieceDelivered && new_pusher3_pieceDelivered;
@@ -247,6 +252,22 @@ public class ZoneE extends Thread {
 
     }
 
+    private void incrementPusherCounters(int pusher, int pieceID) {
+        int pieceType = 0;
+        // Vai buscar o pieceType
+        for (piece pudim : piecesInZoneE) {
+            if (pudim.getPieceID() == pieceID) {
+                pieceType = pudim.getExpectedType();
+            }
+        }
 
+        // incrementa o contador do pusher indicado
+        switch(pusher) {
+            case 1 -> mes.incrementPusher1Counter(pieceType);
+            case 2 -> mes.incrementPusher2Counter(pieceType);
+            case 3 -> mes.incrementPusher3Counter(pieceType);
+            default -> System.out.println("A variável pusher tem um valor diferente de 1, 2 e 3, wtf?!");
+        }
+    }
 }
 
