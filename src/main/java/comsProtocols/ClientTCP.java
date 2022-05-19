@@ -52,15 +52,6 @@ public class ClientTCP {
             sendRequest("startTime");
             sendRequest("internalOrders");
             acceptRequest("finishedOrdersTimes");
-
-//            if (odd) {
-//                sendRequest("startTime");
-//                sendRequest("internalOrders");
-//                //odd = false;
-//            } else {
-//                acceptRequest("finishedOrdersTimes");
-//                odd = true;
-//            }
         }
 
         public void sendRequest(String feature) {

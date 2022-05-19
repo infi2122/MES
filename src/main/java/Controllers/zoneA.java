@@ -116,6 +116,11 @@ public class zoneA extends Thread {
         return null;
     }
 
+    /**
+     *
+     * @return TRUE if warehouse full
+     */
+
     public boolean entryWH_isFull() {
 
         if (mes.getEntryWH().getPieces().size() == mes.getEntryWH().getMAXIMUM_CAPACITY()) {
@@ -126,6 +131,9 @@ public class zoneA extends Thread {
         return false;
     }
 
+    /**
+     * Put piece into entry warehouse
+     */
     public void entry2WH() {
 
         boolean convWH_sensor = mes.getOpcClient().readBool("W1in0_sensor", "IO");
@@ -148,6 +156,9 @@ public class zoneA extends Thread {
         oldConvWH_sensor = convWH_sensor;
     }
 
+    /**
+     * Detect piece in zone A since input conveyors until the last before warehouse
+     */
     public void detectEntryConveyor() {
 
         boolean convP1_sensor = mes.getOpcClient().readBool("Load1_sensor", "IO");
@@ -193,5 +204,3 @@ public class zoneA extends Thread {
 
 
 }
-
-

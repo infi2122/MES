@@ -71,14 +71,13 @@ public class MES {
     }
 
     /**
-     * If true, will try to syncronize with ERP
+     * If true, will try to synchronize with ERP
      * else will get system millis
-     *
-     * @param conectToERP
+     * @param connectToERP If TRUE synchronize
      */
-    public void setStartTime(boolean conectToERP) {
+    public void setStartTime(boolean connectToERP) {
 
-        if (conectToERP) {
+        if (connectToERP) {
             syncronized_with_ERP = true;
 
         } else {
@@ -87,11 +86,6 @@ public class MES {
         }
     }
 
-    /**
-     * Time in seconds
-     *
-     * @return
-     */
     public long getCurrentTime() {
         return currentTime;
     }
@@ -161,6 +155,9 @@ public class MES {
 
     // ***** METHODS ******
 
+    /**
+     * Counts every second since the program started
+     */
     public void countTime() {
 
         if (syncronized_with_ERP)
@@ -185,6 +182,9 @@ public class MES {
         }
     }
 
+    /**
+     * Check if the internalOrders from sharedResources have new orders that came from ERP, via TCP
+     */
     public void receiveInternalOrders() {
 
         String internalOrdersConcat = sharedBuffer.getInternalOrdersConcat();
@@ -196,6 +196,10 @@ public class MES {
 
     }
 
+    /**
+     * Add new orders to MES
+     * @param internalOrders internalOrders encoded that was received from ERP
+     */
     private void addNewInternalOrders(String internalOrders) {
 
         // tokens will have 3 string, for receive, production and shipping respectively
@@ -288,7 +292,9 @@ public class MES {
 
     }
 
-
+    /**
+     * Get production times for every productions
+     */
     public void orderTimes() {
         if (getPiecesHistories().size() == 0)
             return;
@@ -308,7 +314,7 @@ public class MES {
 
         // Set na string do MES para depois ser enviado para o ERP
         sharedBuffer.setFinishedOrdersTimes(encodeOrderTimes());
-        System.out.println("FinishedOrders: " + sharedBuffer.getFinishedOrdersTimes());
+        //System.out.println("FinishedOrders: " + sharedBuffer.getFinishedOrdersTimes());
 
     }
 
