@@ -109,7 +109,8 @@ public class MES_Viewer {
     }
 
     public void showCounters(int[][] counters, int[] totals) {
-        System.out.println("************************* Machine Piece Counters *********************************");
+        System.out.println("****************** Machine Piece Counters *************************");
+
 
         for (int i = 0; i <= 5; i++) {
             System.out.print("Máquina " + i + ": |");
@@ -127,7 +128,8 @@ public class MES_Viewer {
     }
 
     public void showMachineTimmings(int[] time) {
-        System.out.println("************************* Counters *********************************");
+        System.out.println("************************* Counters ********************************");
+
 
         System.out.println("Machine 11 working time: " + time[0]);
         System.out.println("Machine 12 working time: " + time[1]);
@@ -142,7 +144,8 @@ public class MES_Viewer {
     }
 
     public void showPusherCounters(int[][] counters, int[] totals) {
-        System.out.println("************************* Pusher Piece Counters *********************************");
+        System.out.println("****************** Pusher Piece Counters **************************");
+
 
         for (int i = 0; i < 3; i++) {
             System.out.print("Pusher " + (i+1) + ": |");

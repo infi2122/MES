@@ -55,7 +55,7 @@ public class zoneC<MCT_table> extends Thread {
         return piecesOnFloor.size() == MAXIMUM_CAPACITY;
     }
 
-    int cnt = 0;
+    //int cnt = 0;
 
     @Override
     public void run() {
@@ -71,7 +71,7 @@ public class zoneC<MCT_table> extends Thread {
             // Funções relativas a estatísticas
             updateMachineCountersAndWorkingTime();
 
-            if (cnt / 100 == 1) {
+            /*if (cnt / 100 == 1) {
                 System.out.println("** Pieces on the zone C Floor **");
                 for (piece curr : piecesOnFloor) {
 
@@ -84,7 +84,7 @@ public class zoneC<MCT_table> extends Thread {
                 System.out.println("********************************");
                 cnt = 0;
             }
-            cnt++;
+            cnt++;*/
         }
     }
 
@@ -434,18 +434,15 @@ public class zoneC<MCT_table> extends Thread {
         // Máquina M11
         if (RE_M11Working()) {
             M11InitTime = (int) mes.getCurrentTime();
-            System.out.println("Foi marcado o tempo de inicio!");
+
         }
         if (FE_M11Working() && M11InitTime > 0) {
             int finalTime = (int) mes.getCurrentTime();
             mes.incrementM11WorkTime(finalTime - M11InitTime);
             M11InitTime = 0;
 
-            System.out.println("Foi marcado o tempo final e incrementado o contador de tempo!");
-
             // Lê o tipo de peça que foi feito
             int pieceType = mes.getOpcClient().readInt("M11PieceMadeType", "GVL");
-
 
             // Incrementa o contador desse tipo de peça para a máquina M11
             mes.incrementM11Counter(pieceType);
