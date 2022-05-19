@@ -65,6 +65,11 @@ public class App {
                 mes.displayExitWH();
                 mes.displayPieceHistory();
                 mes.orderTimes();
+
+                // Display de estatísticas
+                mes.displayCounters();
+                mes.displayMachinesTimmings();
+                mes.displayPusherCounters();
             }
         }
 

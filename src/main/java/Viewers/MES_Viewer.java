@@ -73,13 +73,13 @@ public class MES_Viewer {
         System.out.println("************************* Exit Warehouse **************************");
         for (piece curr : exitWH.getPieces()) {
 
-            if (oldOrder != curr.getRawMaterialID()) {
-                System.out.println(" \nrawMaterial ID: " + curr.getRawMaterialID() + " arrived on day: " + curr.getWHarrival());
+            if (oldOrder != curr.getOrderID()) {
+                System.out.println(" \norder ID: " + curr.getOrderID() + " arrived on day: " + curr.getWHarrival());
                 System.out.print(" piece IDs: ");
             }
             System.out.print(curr.getPieceID() + "/");
 
-            oldOrder = curr.getRawMaterialID();
+            oldOrder = curr.getOrderID();
 
         }
 
@@ -106,6 +106,57 @@ public class MES_Viewer {
 
         System.out.println("*******************************************************************");
         System.out.println(" ");
+    }
+
+    public void showCounters(int[][] counters, int[] totals) {
+        System.out.println("************************* Machine Piece Counters *********************************");
+
+        for (int i = 0; i <= 5; i++) {
+            System.out.print("Máquina " + i + ": |");
+            for (int j = 0; j < 9; j++) System.out.print(counters[i][j] + "|");
+            System.out.println();
+        }
+
+        System.out.print("Machine Totals: |" );
+        for (int i = 0; i < 6; i++) System.out.print(totals[i] + "|");
+        System.out.println();
+
+        System.out.println();
+        System.out.println("*******************************************************************");
+        System.out.println();
+    }
+
+    public void showMachineTimmings(int[] time) {
+        System.out.println("************************* Counters *********************************");
+
+        System.out.println("Machine 11 working time: " + time[0]);
+        System.out.println("Machine 12 working time: " + time[1]);
+        System.out.println("Machine 13 working time: " + time[2]);
+        System.out.println("Machine 21 working time: " + time[3]);
+        System.out.println("Machine 22 working time: " + time[4]);
+        System.out.println("Machine 23 working time: " + time[5]);
+
+        System.out.println();
+        System.out.println("*******************************************************************");
+        System.out.println();
+    }
+
+    public void showPusherCounters(int[][] counters, int[] totals) {
+        System.out.println("************************* Pusher Piece Counters *********************************");
+
+        for (int i = 0; i < 3; i++) {
+            System.out.print("Pusher " + (i+1) + ": |");
+            for (int j = 0; j < 9; j++) System.out.print(counters[i][j] + "|");
+            System.out.println();
+        }
+
+        System.out.print("Pusher Totals: |" );
+        for (int i = 0; i < 3; i++) System.out.print(totals[i] + "|");
+        System.out.println();
+
+        System.out.println();
+        System.out.println("*******************************************************************");
+        System.out.println();
     }
 
 

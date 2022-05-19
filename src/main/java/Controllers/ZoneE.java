@@ -29,15 +29,18 @@ public class ZoneE extends Thread {
     public void run() {
         synchronized (mes) {
 
-            handlePlacementOfPieces();
+            int pieceQtyZoneE = handlePlacementOfPieces();
+//          System.out.println("N pieces in Zone E: " + pieceQtyZoneE);
+
+            // Entrega de peças e Estatísticas
+            setShippingTimmingsAndCounters();
+
+            // Resetar flag placingPiece
             updatePlacingPieceFlag();
-
-            //setShippingTimmingsAndCounters();
-
         }
     }
 
-    public void handlePlacementOfPieces() {
+    public int handlePlacementOfPieces() {
 
         ArrayList<shippingOrder> allShippingOrders = mes.getShippingOrder(); // Obter todas as shipping orders
 
@@ -61,6 +64,8 @@ public class ZoneE extends Thread {
             placingPiece = true;
             int placedPieceId = placePieceInConveyor(); // Coloca essas peças no tapete
         }
+
+        return piecesInZoneE.size();
 
     }
 
@@ -269,5 +274,7 @@ public class ZoneE extends Thread {
             default -> System.out.println("A variável pusher tem um valor diferente de 1, 2 e 3, wtf?!");
         }
     }
+
+
 }
 

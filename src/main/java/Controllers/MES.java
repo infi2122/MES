@@ -246,8 +246,8 @@ public class MES {
                             ArrayList<rawMaterial> rawMaterials = new ArrayList<>();
                             while (k < Integer.parseInt(last[4])) {
                                 rawMaterials.add(new rawMaterial(
-                                        Integer.parseInt(last[5 + k]),
-                                        Integer.parseInt(last[6 + k])));
+                                        Integer.parseInt(last[5 + 2*k]),
+                                        Integer.parseInt(last[6 + 2*k])));
                                 k++;
                             }
                             pOrder.setRawMaterials(rawMaterials);
@@ -444,7 +444,51 @@ public class MES {
         getMes_viewer().showPiecesHistory(getPiecesHistories());
     }
 
+    public void displayCounters() {
+        int[][] mCounter = new int[6][9];
+        for (int i = 0; i < 9; i++) mCounter[0][i] = getM11Counter(i+1);
+        for (int i = 0; i < 9; i++) mCounter[1][i] = getM12Counter(i+1);
+        for (int i = 0; i < 9; i++) mCounter[2][i] = getM13Counter(i+1);
+        for (int i = 0; i < 9; i++) mCounter[3][i] = getM21Counter(i+1);
+        for (int i = 0; i < 9; i++) mCounter[4][i] = getM22Counter(i+1);
+        for (int i = 0; i < 9; i++) mCounter[5][i] = getM23Counter(i+1);
 
+        int[] totals = new int[6];
+        totals[0] = getMachineXXTotalCounter(11);
+        totals[1] = getMachineXXTotalCounter(12);
+        totals[2] = getMachineXXTotalCounter(13);
+        totals[3] = getMachineXXTotalCounter(21);
+        totals[4] = getMachineXXTotalCounter(22);
+        totals[5] = getMachineXXTotalCounter(23);
+
+        mes_viewer.showCounters(mCounter, totals);
+    }
+
+    public void displayMachinesTimmings() {
+        int[] timmings = new int[6];
+        timmings[0] = getM11WorkingTime();
+        timmings[1] = getM12WorkingTime();
+        timmings[2] = getM13WorkingTime();
+        timmings[3] = getM21WorkingTime();
+        timmings[4] = getM22WorkingTime();
+        timmings[5] = getM23WorkingTime();
+
+        mes_viewer.showMachineTimmings(timmings);
+    }
+
+    public void displayPusherCounters() {
+        int[][] pCounter = new int[3][9];
+        for (int i = 0; i < 9; i++) pCounter[0][i] = getPusher1Counter(i+1);
+        for (int i = 0; i < 9; i++) pCounter[1][i] = getPusher2Counter(i+1);
+        for (int i = 0; i < 9; i++) pCounter[2][i] = getPusher3Counter(i+1);
+
+        int[] pTotals = new int[3];
+        pTotals[0] = getPusherXTotalCounter(1);
+        pTotals[1] = getPusherXTotalCounter(2);
+        pTotals[2] = getPusherXTotalCounter(3);
+
+        mes_viewer.showPusherCounters(pCounter, pTotals);
+    }
 
     // ****************** Funções relacionadas com os contadores de peças na zona E **************** //
 
@@ -541,36 +585,36 @@ public class MES {
     // ---- Retorna a quantidade total de peças operadas por uma máquina ---- //
     // X corresponde à máquina X no MCT, ou seja:
     // X = {0,1,2,3,4,5} <=> M = {M11, M12, M13, M23, M21, M22}
-    public int getMachineXTotalCounter(int X) {
+    public int getMachineXXTotalCounter(int XX) {
         int counter = 0;
 
-        switch(X) {
-            case 0 -> {
-                for (int i : machine11Counter) counter += machine11Counter[i];
+        switch(XX) {
+            case 11 -> {
+                for (int i : machine11Counter) counter += i;
                 return counter;
             }
-            case 1 -> {
-                for (int i : machine12Counter) counter += machine12Counter[i];
+            case 12 -> {
+                for (int i : machine12Counter) counter += i;
                 return counter;
             }
-            case 2 -> {
-                for (int i : machine13Counter) counter += machine13Counter[i];
+            case 13 -> {
+                for (int i : machine13Counter) counter += i;
                 return counter;
             }
-            case 3 -> {
-                for (int i : machine23Counter) counter += machine23Counter[i];
+            case 23 -> {
+                for (int i : machine23Counter) counter += i;
                 return counter;
             }
-            case 4 -> {
-                for (int i : machine21Counter) counter += machine21Counter[i];
+            case 21 -> {
+                for (int i : machine21Counter) counter += i;
                 return counter;
             }
-            case 5 -> {
-                for (int i : machine22Counter) counter += machine22Counter[i];
+            case 22 -> {
+                for (int i : machine22Counter) counter += i;
                 return counter;
             }
             default -> {
-                System.out.println("A máquina referida não existe! Valor de X tem que estar entre 0 e 5");
+                System.out.println("A máquina referida não existe!");
                 return -1;
             }
 
@@ -611,4 +655,5 @@ public class MES {
     public int getM23WorkingTime() { return machine23WorkingTime;}
 
     // ************************************************************************************** //
+
 }
