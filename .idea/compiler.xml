@@ -35,5 +35,8 @@
         <module name="stack-core" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="test" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

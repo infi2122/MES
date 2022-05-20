@@ -2,17 +2,56 @@ package Models;
 
 public class piece {
 
+    private int pieceID;
+    private int rawMaterialID;
     private int orderID;
     private int expectedType;
     private int WHarrival;
-    private int productionStart;
-    private int productionEnd;
-    private int unloadStart;
-    private int unloadEnd;
+    private long productionStart;
+    private long productionEnd;
+    private int shippingStart;
+    private int shippingEnd;
 
-    public piece(int orderID, int WHarrival) {
-        this.orderID = orderID;
+    public piece(int pieceID, int WHarrival){
+        this.pieceID = pieceID;
         this.WHarrival = WHarrival;
+    }
+
+    public piece(int pieceID, int rawMaterialID, int WHarrival) {
+        this.pieceID = pieceID;
+        this.rawMaterialID = rawMaterialID;
+        this.WHarrival = WHarrival;
+    }
+
+    public piece(piece convP2) {
+        this.pieceID = convP2.pieceID;
+        this.WHarrival = convP2.WHarrival;
+    }
+
+    public piece(int pieceID, int rawMaterialID, int orderID, int expectedType, int WHarrival, long productionStart, long productionEnd) {
+        this.pieceID = pieceID;
+        this.rawMaterialID = rawMaterialID;
+        this.orderID = orderID;
+        this.expectedType = expectedType;
+        this.WHarrival = WHarrival;
+        this.productionStart = productionStart;
+        this.productionEnd = productionEnd;
+    }
+
+    public int getPieceID() {
+        return pieceID;
+    }
+
+    public void setPieceID(int pieceID) {
+        this.pieceID = pieceID;
+    }
+
+    public int getRawMaterialID() {
+        return rawMaterialID;
+    }
+
+    public void setRawMaterialID(int rawMaterialID) {
+        this.rawMaterialID = rawMaterialID;
     }
 
     public int getOrderID() {
@@ -39,37 +78,35 @@ public class piece {
         this.WHarrival = WHarrival;
     }
 
-    public int getProductionStart() {
+    public long getProductionStart() {
         return productionStart;
     }
 
-    public void setProductionStart(int productionStart) {
+    public void setProductionStart(long productionStart) {
         this.productionStart = productionStart;
     }
 
-    public int getProductionEnd() {
+    public long getProductionEnd() {
         return productionEnd;
     }
 
-    public void setProductionEnd(int productionEnd) {
+    public void setProductionEnd(long productionEnd) {
         this.productionEnd = productionEnd;
     }
 
-    public int getUnloadStart() {
-        return unloadStart;
+    public int getShippingStart() {
+        return shippingStart;
     }
 
-    public void setUnloadStart(int unloadStart) {
-        this.unloadStart = unloadStart;
+    public void setShippingStart(int shippingStart) {
+        this.shippingStart = shippingStart;
     }
 
-    public int getUnloadEnd() {
-        return unloadEnd;
+    public int getShippingEnd() {
+        return shippingEnd;
     }
 
-    public void setUnloadEnd(int unloadEnd) {
-        this.unloadEnd = unloadEnd;
+    public void setShippingEnd(int shippingEnd) {
+        this.shippingEnd = shippingEnd;
     }
-
-
 }

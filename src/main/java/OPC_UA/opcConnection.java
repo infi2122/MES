@@ -8,16 +8,21 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.w3c.dom.ls.LSOutput;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 
 public class opcConnection {
 
     private OpcUaClient opcConnection;
     private ClientExampleRunner clientExampleRunner;
-    private String nodePath = "|var|CODESYS Control Win V3 x64.Application.GVL.";
+
+    private String globalVarNodePath = "|var|CODESYS Control Win V3 x64.Application.GVL.";
+    private String IoVarNodePath = "|var|CODESYS Control Win V3 x64.Application.IoConfig_Globals_Mapping.";
     private int nameSpaceIndex = 4;
 
     public OpcUaClient getOpcConnection() {
@@ -56,52 +61,87 @@ public class opcConnection {
     }
 
 
-    public int readMCT(int machineID) {
+    public String read(String node, String path, String type) {
 
         OpcUaClient client = getOpcConnection();
 
         try {
             client.connect().get();
-
+            String identifier = null;
+            if (path.equals("GVL")) {
+                identifier = globalVarNodePath + node;
+            } else if (path.equals("IO")) {
+                identifier = IoVarNodePath + node;
+            }
             // synchronous read request via VariableNode
-            String identifier = nodePath + "MCT_" + machineID;
-
             NodeId node_id = new NodeId(nameSpaceIndex, identifier);
 
             UaVariableNode mm = client.getAddressSpace().getVariableNode(node_id);
 
             DataValue value = mm.readValue();
 
-            String val = String.valueOf(value.getValue());
-            String[] val2 = val.split("=", -1);
-            String[] val3 = val2[1].split("}", -1);
+            if (type.equals("int")) {
+                String val = String.valueOf(value.getValue());
+                String[] val2 = val.split("=", -1);
+                String[] val3 = val2[1].split("}", -1);
 
-            System.out.println(val3[0]);
+                return val3[0];
+            } else if (type.equals("bool")) {
+                String val = String.valueOf(value.getValue().getValue());
+                return val;
+            }
 
-            return Integer.parseInt(val3[0]);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return -1;
+        return null;
     }
 
-    public void writeMCT(int machineID, int newTool) {
+    /**
+     * @param node
+     * @param path
+     * @param newValue If boolean newValue, 1 = TRUE, 0 = FALSE
+     *                 If int newValue
+     * @param type     If type != int/bool -> error
+     */
+    public void write(String node, String path, int newValue, String type) {
         OpcUaClient client = getOpcConnection();
 
         try {
             client.connect().get();
+            DataValue dataValue;
 
-            short tool = (short) newTool;
+            if (type.equals("bool")) {
+                if (newValue == 1) {
+                    boolean i = true;
+                    dataValue = new DataValue(new Variant(i));
+                } else {
+                    boolean i = false;
+                    dataValue = new DataValue(new Variant(i));
+                }
 
-            DataValue dataValue = new DataValue(new Variant(tool));
-            String identifier = nodePath + "MCT_" + machineID;
+
+            } else if (type.equals("int")) {
+                dataValue = new DataValue(new Variant((short) newValue));
+
+            } else {
+                System.out.println("Error! Type not defined in write OPC");
+                return;
+            }
+
+            String identifier = null;
+            if (path.equals("GVL")) {
+                identifier = globalVarNodePath + node;
+            } else if (path.equals("IO")) {
+                identifier = IoVarNodePath + node;
+            }
 
             CompletableFuture<StatusCode> f = client.writeValue(new NodeId(nameSpaceIndex, identifier), dataValue);
 
             if (f.get().isBad()) {
-                System.out.println("Error on write!");
+                System.out.println("Error on writing by OPC-UA: " + node);
             }
         } catch (ExecutionException ex) {
             ex.printStackTrace();
@@ -112,6 +152,51 @@ public class opcConnection {
 
         getClientExampleRunner().getFuture().complete(client);
 
+
+    }
+
+    /**
+     * @param node Means that is the variable name
+     * @param path GVL or IO
+     * @return
+     */
+    public int readInt(String node, String path) {
+
+        return Integer.parseInt(read(node, path,"int"));
+    }
+
+    /**
+     * @param node     Means that is the variable name
+     * @param path     GVL or IO
+     * @param newValue
+     */
+    public void writeInt(String node, String path, int newValue) {
+        write(node, path, newValue, "int");
+    }
+
+    /**
+     * @param node Means that is the variable name
+     * @param path GVL or IO
+     * @return
+     */
+    public boolean readBool(String node, String path) {
+
+        String ret = read(node,path,"bool");
+        if(ret.equals("true"))
+            return true;
+        else
+            return false;
+
+    }
+
+    /**
+     * @param node     Means that is the variable name
+     * @param path     GVL or IO
+     * @param newValue 1 or 0
+     */
+    public void writeBool(String node, String path, int newValue) {
+
+        write(node, path, newValue, "bool");
 
     }
 
