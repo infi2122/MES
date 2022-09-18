@@ -1,6 +1,6 @@
 package Models;
 
-public class piece {
+public class    piece {
 
     private int pieceID;
     private int rawMaterialID;

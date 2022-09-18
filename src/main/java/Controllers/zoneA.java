@@ -74,23 +74,28 @@ public class zoneA extends Thread {
 
     @Override
     public void run() {
+        try {
+            synchronized (mes) {
 
-        synchronized (mes) {
+                // Verificar so RE dos tapetes de entrada
+                //    Se sim, entao criar nova instancia de p1 e p2
+                // No RE do Load 0 passa a peça de p1 ou p2 para o tapete rotativo para nao ser perdida a info
+                detectEntryConveyor();
 
-            // Verificar so RE dos tapetes de entrada
-            //    Se sim, entao criar nova instancia de p1 e p2
-            // No RE do Load 0 passa a peça de p1 ou p2 para o tapete rotativo para nao ser perdida a info
-            detectEntryConveyor();
-
-            if (!entryWH_isFull()) {
-                if (!isRecvType1() && !isRecvType2()) {
-                    curr_receiveOrder = setRecvType();
-                }
-                if (curr_receiveOrder != null) {
-                    entry2WH();
+                if (!entryWH_isFull()) {
+                    if (!isRecvType1() && !isRecvType2()) {
+                        curr_receiveOrder = setRecvType();
+                    }
+                    if (curr_receiveOrder != null) {
+                        entry2WH();
+                    }
                 }
             }
         }
+        catch( Throwable t ){
+            System.out.println("Zona A" + t.getMessage() );
+        }
+
     }
 
     /**
@@ -120,7 +125,6 @@ public class zoneA extends Thread {
      *
      * @return TRUE if warehouse full
      */
-
     public boolean entryWH_isFull() {
 
         if (mes.getEntryWH().getPieces().size() == mes.getEntryWH().getMAXIMUM_CAPACITY()) {

@@ -8,9 +8,10 @@ import javax.xml.bind.SchemaOutputResolver;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class zoneC<MCT_table> extends Thread {
+public class zoneC extends Thread {
 
     private ArrayList<piece> piecesOnFloor = new ArrayList<>();
+    private ArrayList<productionOrder> orders4Tools = new ArrayList<>();
 
     private final int MAXIMUM_CAPACITY = 6;
     private static int oneDay = 60;
@@ -59,77 +60,153 @@ public class zoneC<MCT_table> extends Thread {
 
     @Override
     public void run() {
+        try{
+            synchronized (mes) {
 
-        synchronized (mes) {
+                defineMCT();
+                set_curr_PO_day();
+                unloadToSFS();
+                storeInExitWH();
+                updateExitWH_state();
 
-            defineMCT();
-            set_curr_PO_day();
-            unloadToSFS();
-            storeInExitWH();
-            updateExitWH_state();
+                // Funções relativas a estatísticas
+                updateMachineCountersAndWorkingTime();
 
-            // Funções relativas a estatísticas
-            updateMachineCountersAndWorkingTime();
-
-            /*if (cnt / 100 == 1) {
-                System.out.println("** Pieces on the zone C Floor **");
-                for (piece curr : piecesOnFloor) {
-
-                    System.out.println(
-                            "order id: " + curr.getOrderID()
-                                    + " piece type " + curr.getExpectedType()
-                                    + " piece id " + curr.getPieceID()
-                    );
-                }
-                System.out.println("********************************");
-                cnt = 0;
             }
-            cnt++;*/
         }
+        catch( Throwable t ){
+            System.out.println("Zona C" + t.getMessage() );
+        }
+
+
     }
-
-    private static int[][] MCT_table = {
-            {1, 0, 3, 2, 2, 4},
-            {1, 3, 3, 2, 3, 4},
-            {1, 4, 3, 2, 4, 4},
-            {1, 1, 3, 2, 0, 4},
-            {1, 3, 3, 2, 4, 4},
-            {1, 1, 3, 2, 3, 4},
-            {1, 3, 3, 2, 4, 4}
-    };
-
 
     public void defineMCT() {
 
         int currDay = mes.getCountdays();
+
+        //Set starting MCT
+        int[] mct = {1, 3, 3, 2, 4, 4};
+
+        // On the starting day sets the machines to starting position
         if (currDay == 0) {
-            // Se o dia for 0 então faz o default das MCT
-            // MCT [ 1, 1, 3, 2, 2, 4 ]
-            int[] mct = {1, 1, 3, 2, 2, 4};
             setMCT(mct);
             return;
         }
+
+        // Doesn't update on even days
         if (currDay % 2 == 0)
             return;
 
-        int type = 0, num = 0;
-        for (productionOrder curr : mes.getProductionOrder()) {
-            if (curr.getStartDate() == currDay + 1 || curr.getStartDate() == currDay + 2) {
-                if (curr.getQty() > num) {
-                    num = curr.getQty();
-                    type = curr.getFinalType();
+        // Updates on the odd days
+        setMCT(calculateMCT(getNTransformations(), mct));
+    }
+
+    private int[] calculateMCT(int[] nTransformations, int[] mct) {
+
+        if ((nTransformations[0] - nTransformations[2]) == -nTransformations[2]) {
+            mct = new int[]{3, 3, 3, mct[3], mct[4], mct[5]};
+        } else if ((nTransformations[0] - nTransformations[2]) > -nTransformations[2] && (nTransformations[0] - nTransformations[2]) <= 0) {
+            mct = new int[]{1, 3, 3, mct[3], mct[4], mct[5]};
+        } else if ((nTransformations[0] - nTransformations[2]) > 0 && (nTransformations[0] - nTransformations[2]) < nTransformations[0]) {
+            mct = new int[]{1, 1, 3, mct[3], mct[4], mct[5]};
+        } else if ((nTransformations[0] - nTransformations[2]) == nTransformations[0]) {
+            mct = new int[]{1, 1, 1, mct[3], mct[4], mct[5]};
+        }
+
+        if ((nTransformations[1] - nTransformations[3]) == -nTransformations[3]) {
+            mct = new int[]{mct[0], mct[1], mct[2], 4, 4, 4};
+        } else if ((nTransformations[1] - nTransformations[3]) > -nTransformations[3] && (nTransformations[1] - nTransformations[3]) <= 0) {
+            mct = new int[]{mct[0], mct[1], mct[2], 2, 4, 4};
+        } else if ((nTransformations[1] - nTransformations[3]) > 0 && (nTransformations[1] - nTransformations[3]) < nTransformations[1]) {
+            mct = new int[]{mct[0], mct[1], mct[2], 2, 2, 4};
+        } else if ((nTransformations[1] - nTransformations[3]) == nTransformations[1]) {
+            mct = new int[]{mct[0], mct[1], mct[2], 2, 2, 2};
+        }
+
+        return mct;
+    }
+
+
+    private ArrayList<productionOrder> getOrders4Tools() {
+
+        int currDay = mes.getCountdays();
+
+        //Cleans all orders so that they can be refreshed
+        if (orders4Tools.size() > 0) {
+            orders4Tools.clear();
+        }
+
+        // Adds the production orders to be considered to the array list
+        for (productionOrder order : mes.getProductionOrder()) {
+            // Checks if the production orders are for today or the two next days and adds them to the list
+            if (order.getStartDate() == curr_PO_day || order.getStartDate() == currDay + 1 || order.getStartDate() == currDay + 2)
+                orders4Tools.add(order);
+        }
+
+        //Goes through the pieces on the floor to guarantee that they have tools
+        boolean already_exists;
+
+        for (piece curr_Piece : piecesOnFloor) {
+            already_exists = false;
+            int order_id = curr_Piece.getOrderID();
+            for (productionOrder curr_prod : orders4Tools) {
+                if (order_id == curr_prod.getManufacturingID()) {
+                    already_exists = true;
                 }
             }
-        }
-        // Porque o vetor MCT_table tem as P3 na pos 0
-        type = type - 3;
-        if (type >= 0) {
-            setMCT(MCT_table[type]);
-        }
-        return;
 
+            if (!already_exists) {
+                orders4Tools.add(mes.get_PO_by_ID(order_id));
+            }
+
+        }
+
+        return orders4Tools;
+    }
+
+    private int[] getNTransformations() {
+        ArrayList<productionOrder> orders2Consider = getOrders4Tools();
+        //Vector with the number of transformations to consider
+
+        int[] nTransformations = {0, 0, 0, 0};
+
+
+        //Goes through the production orders to consider
+        for (productionOrder curr_prod : orders2Consider) {
+            int[] transformations = getOnlyTransformations(curr_prod.getFinalType());
+
+            for (int i : transformations) {
+                switch (i) {
+                    case 1 -> ++nTransformations[0];
+                    case 2 -> ++nTransformations[1];
+                    case 3 -> ++nTransformations[2];
+                    case 4 -> ++nTransformations[3];
+                }
+            }
+
+        }
+
+
+        return nTransformations;
 
     }
+
+    private int[] getOnlyTransformations(int finalType) {
+
+        int[] ret = switch (finalType) {
+            case 3 -> new int[]{2, 0, 0};
+            case 4 -> new int[]{3, 0, 0};
+            case 5 -> new int[]{4, 0, 0};
+            case 6 -> new int[]{1, 0, 0};
+            case 7 -> new int[]{3, 4, 0};
+            case 8 -> new int[]{1, 3, 0};
+            case 9 -> new int[]{3, 4, 3};
+            default -> new int[]{0, 0, 0};
+        };
+        return ret;
+    }
+
 
     private void setMCT(int[] mct) {
 
@@ -165,6 +242,8 @@ public class zoneC<MCT_table> extends Thread {
                             //System.out.println("Raw Material id: " + curr.getRawMaterialID());
                             piece newPieceOnFloor = searchPieceInEntryWH(curr.getRawMaterialID());
 
+                            if( newPieceOnFloor == null) return;
+
                             newPieceOnFloor.setOrderID(currProdOrder.getManufacturingID());
                             newPieceOnFloor.setExpectedType(currProdOrder.getFinalType());
                             newPieceOnFloor.setProductionStart(mes.getCurrentTime());
@@ -172,9 +251,6 @@ public class zoneC<MCT_table> extends Thread {
                             //  int[] transformations = [actualType, T1, T2, T3]
                             int[] transformations = getTransformations(newPieceOnFloor.getExpectedType());
                             curr.setQty_used(curr.getQty_used() - 1);
-//                            System.out.println("manufacturingID: " + newPieceOnFloor.getOrderID() + " tipo atual: " + transformations[0]
-//                                    + " T1: " + transformations[1] + " T2: " + transformations[2] + " T3: " + transformations[3]
-//                                    + " piece ID: " + newPieceOnFloor.getPieceID() + " rawMaterialID: " + newPieceOnFloor.getRawMaterialID());
                             send_piece_code_to_opcua(
                                     newPieceOnFloor.getOrderID(),
                                     transformations[0],
@@ -330,7 +406,7 @@ public class zoneC<MCT_table> extends Thread {
             if (!currPO.is_Done() && currPO.getStartDate() <= mes.getCountdays()) {
 
 //                O curr_PO_day vai ser a data mais baixa dos POs incompletos
-                if( curr_PO_day > currPO.getStartDate() ){
+                if (curr_PO_day > currPO.getStartDate()) {
                     curr_PO_day = currPO.getStartDate();
                 }
             }
@@ -349,6 +425,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return RE;
     }
+
     private boolean RE_M12Working() {
         boolean new_M12Working = mes.getOpcClient().readBool("M12Working", "GVL");
         boolean RE = new_M12Working && !old_M12Working;
@@ -356,6 +433,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return RE;
     }
+
     private boolean RE_M13Working() {
         boolean new_M13Working = mes.getOpcClient().readBool("M13Working", "GVL");
         boolean RE = new_M13Working && !old_M13Working;
@@ -363,6 +441,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return RE;
     }
+
     private boolean RE_M21Working() {
         boolean new_M21Working = mes.getOpcClient().readBool("M21Working", "GVL");
         boolean RE = new_M21Working && !old_M21Working;
@@ -370,6 +449,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return RE;
     }
+
     private boolean RE_M22Working() {
         boolean new_M22Working = mes.getOpcClient().readBool("M22Working", "GVL");
         boolean RE = new_M22Working && !old_M22Working;
@@ -377,6 +457,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return RE;
     }
+
     private boolean RE_M23Working() {
         boolean new_M23Working = mes.getOpcClient().readBool("M23Working", "GVL");
         boolean RE = new_M23Working && !old_M23Working;
@@ -393,6 +474,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return FE;
     }
+
     private boolean FE_M12Working() {
         boolean new_M12NotWorking = mes.getOpcClient().readBool("M12NotWorking", "GVL");
         boolean FE = new_M12NotWorking && !old_M12NotWorking;
@@ -400,6 +482,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return FE;
     }
+
     private boolean FE_M13Working() {
         boolean new_M13NotWorking = mes.getOpcClient().readBool("M13NotWorking", "GVL");
         boolean FE = new_M13NotWorking && !old_M13NotWorking;
@@ -407,6 +490,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return FE;
     }
+
     private boolean FE_M21Working() {
         boolean new_M21NotWorking = mes.getOpcClient().readBool("M21NotWorking", "GVL");
         boolean FE = new_M21NotWorking && !old_M21NotWorking;
@@ -414,6 +498,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return FE;
     }
+
     private boolean FE_M22Working() {
         boolean new_M22NotWorking = mes.getOpcClient().readBool("M22NotWorking", "GVL");
         boolean FE = new_M22NotWorking && !old_M22NotWorking;
@@ -421,6 +506,7 @@ public class zoneC<MCT_table> extends Thread {
 
         return FE;
     }
+
     private boolean FE_M23Working() {
         boolean new_M23NotWorking = mes.getOpcClient().readBool("M23NotWorking", "GVL");
         boolean FE = new_M23NotWorking && !old_M23NotWorking;

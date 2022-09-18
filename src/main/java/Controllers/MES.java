@@ -26,26 +26,8 @@ public class MES {
     private ArrayList<productionOrder> productionOrder;
     private ArrayList<shippingOrder> shippingOrder;
     private ArrayList<piecesHistory> piecesHistories;
-    private entryWarehouse entryWH;
-    private exitWarehouse exitWH;
-
-    private int[] pusher1Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    private int[] pusher2Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    private int[] pusher3Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    private int[] machine11Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    private int[] machine12Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    private int[] machine13Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    private int[] machine21Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    private int[] machine22Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    private int[] machine23Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    private int machine11WorkingTime = 0;
-    private int machine12WorkingTime = 0;
-    private int machine13WorkingTime = 0;
-    private int machine21WorkingTime = 0;
-    private int machine22WorkingTime = 0;
-    private int machine23WorkingTime = 0;
+    private warehouse entryWH;
+    private warehouse exitWH;
 
     public MES(MES_Viewer mes_viewer, sharedResources sharedBuffer) {
         this.mes_viewer = mes_viewer;
@@ -53,8 +35,8 @@ public class MES {
         this.receiveOrder = new ArrayList<>();
         this.productionOrder = new ArrayList<>();
         this.shippingOrder = new ArrayList<>();
-        this.entryWH = new entryWarehouse();
-        this.exitWH = new exitWarehouse();
+        this.entryWH = new warehouse();
+        this.exitWH = new warehouse();
         this.piecesHistories = new ArrayList<>();
     }
 
@@ -73,6 +55,7 @@ public class MES {
     /**
      * If true, will try to synchronize with ERP
      * else will get system millis
+     *
      * @param connectToERP If TRUE synchronize
      */
     public void setStartTime(boolean connectToERP) {
@@ -115,6 +98,13 @@ public class MES {
         return productionOrder;
     }
 
+    public productionOrder get_PO_by_ID(int manufactID) {
+        for (productionOrder curr : getProductionOrder()) {
+            if (curr.getManufacturingID() == manufactID) return curr;
+        }
+        return null;
+    }
+
     public boolean addProductionOrder(productionOrder newProductionOrder) {
         if (!getProductionOrder().add(newProductionOrder)) return false;
         return true;
@@ -129,11 +119,11 @@ public class MES {
         return true;
     }
 
-    public entryWarehouse getEntryWH() {
+    public warehouse getEntryWH() {
         return entryWH;
     }
 
-    public exitWarehouse getExitWH() {
+    public warehouse getExitWH() {
         return exitWH;
     }
 
@@ -165,7 +155,7 @@ public class MES {
 
         if (countdays == -1) {
             countdays++;
-            System.out.println("Current Day: " + countdays);
+            displayCurrentDay();
         }
 
         long time = System.currentTimeMillis();
@@ -176,7 +166,8 @@ public class MES {
 
                 if ((int) getCurrentTime() / oneDay > countdays) {
                     countdays = (int) getCurrentTime() / oneDay;
-                    System.out.println("Current Day: " + countdays);
+                    displayCurrentDay();
+                    displayMenu();
                 }
             }
         }
@@ -198,6 +189,7 @@ public class MES {
 
     /**
      * Add new orders to MES
+     *
      * @param internalOrders internalOrders encoded that was received from ERP
      */
     private void addNewInternalOrders(String internalOrders) {
@@ -250,8 +242,8 @@ public class MES {
                             ArrayList<rawMaterial> rawMaterials = new ArrayList<>();
                             while (k < Integer.parseInt(last[4])) {
                                 rawMaterials.add(new rawMaterial(
-                                        Integer.parseInt(last[5 + 2*k]),
-                                        Integer.parseInt(last[6 + 2*k])));
+                                        Integer.parseInt(last[5 + 2 * k]),
+                                        Integer.parseInt(last[6 + 2 * k])));
                                 k++;
                             }
                             pOrder.setRawMaterials(rawMaterials);
@@ -298,27 +290,38 @@ public class MES {
     public void orderTimes() {
         if (getPiecesHistories().size() == 0)
             return;
+        int finalDay = 0;
+
         for (piecesHistory curr : getPiecesHistories()) {
+            finalDay = 0;
             if (curr.getMeanProductionTime() == 0 && curr.getMeanTimeInSFS() == 0) {
-                long sumProductionTime = 0;
+
+                int sumProductionTime = 0;
                 int sumSFStime = 0;
 
+
                 for (piece p : curr.getPieces()) {
-                    sumProductionTime += (p.getProductionEnd() - p.getProductionStart()) ;
+                    sumProductionTime += (p.getProductionEnd() - p.getProductionStart());
                     sumSFStime += p.getShippingEnd() - p.getWHarrival();
+                    if (p.getShippingEnd() > finalDay) {
+                        finalDay = p.getShippingEnd() / oneDay;
+                        if (p.getShippingEnd() - countdays * oneDay > 30) {
+                            finalDay++;
+                        }
+                    }
                 }
-                curr.setMeanProductionTime((int) sumProductionTime / curr.getQty());
+                curr.setMeanProductionTime(sumProductionTime / curr.getQty());
                 curr.setMeanTimeInSFS(sumSFStime / curr.getQty());
             }
         }
 
         // Set na string do MES para depois ser enviado para o ERP
-        sharedBuffer.setFinishedOrdersTimes(encodeOrderTimes());
+        sharedBuffer.setFinishedOrdersTimes(encodeOrderTimes(finalDay));
         //System.out.println("FinishedOrders: " + sharedBuffer.getFinishedOrdersTimes());
 
     }
 
-    private String encodeOrderTimes() {
+    private String encodeOrderTimes(int finalDay) {
 
         String finishedOrders = "";
 
@@ -329,6 +332,8 @@ public class MES {
                 finishedOrders = finishedOrders.concat(Integer.toString(curr.getMeanProductionTime()));
                 finishedOrders = finishedOrders.concat("@");
                 finishedOrders = finishedOrders.concat(Integer.toString(curr.getMeanTimeInSFS()));
+                finishedOrders = finishedOrders.concat("@");
+                finishedOrders = finishedOrders.concat(Integer.toString(finalDay));
                 finishedOrders = finishedOrders.concat("/");
             }
         }
@@ -336,101 +341,21 @@ public class MES {
         return finishedOrders;
     }
 
-    public void testMES_zonaA() {
-
-        setStartTime(false);
-
-        addReceiveOrder(new receiveOrder(
-                0,
-                2,
-                1,
-                5
-        ));
-        addReceiveOrder(new receiveOrder(
-                1,
-                1,
-                1,
-                4
-        ));
-        addReceiveOrder(new receiveOrder(
-                3,
-                2,
-                2,
-                16
-        ));
-
-
-    }
-
-    public void testMES_zonaC() {
-
-        setStartTime(false);
-        int rawMaterialID = 0;
-        for (int i = 0; i < 10; i++) {
-
-            if (i == 5)
-                rawMaterialID++;
-
-            addPiece2entryWH(new piece(
-                    i,
-                    rawMaterialID,
-                    1
-            ));
-
-        }
-
-        productionOrder pOrder = new productionOrder(0, 4, 3, 3);
-        ArrayList<rawMaterial> raw = new ArrayList<>();
-        raw.add(new rawMaterial(0, 3));
-        pOrder.setRawMaterials(raw);
-
-        addProductionOrder(pOrder);
-
-        productionOrder pOrder2 = new productionOrder(1, 5, 3, 5);
-        ArrayList<rawMaterial> raw2 = new ArrayList<>();
-        raw2.add(new rawMaterial(1, 5));
-        pOrder2.setRawMaterials(raw2);
-
-        addProductionOrder(pOrder2);
-
-
-    }
-
-    public void testMES_zonaE() {
-        setStartTime(false);
-        for(int i=0;i<5;i++){
-            piece p = new piece(
-                    i,
-                    0,
-                    1,
-                    5,
-                    2,
-                    122+i,
-                    140+i);
-
-            addPiece2exitWH(p);
-        }
-        for(int i=0;i<5;i++){
-            piece p = new piece(
-                    i+5,
-                    2,
-                    2,
-                    4,
-                    3,
-                    12+i,
-                    14+i);
-
-            addPiece2exitWH(p);
-        }
-
-//        addProductionOrder(new productionOrder(1,5,1,5));
-
-        shippingOrder shipship = new shippingOrder(1, 2, 5);
-
-        addShippingOrder(shipship);
-    }
 
     // ******** VIEW METHODS *********
+
+    public void displayMenu() {
+        getMes_viewer().showMenu();
+    }
+
+    public void displayCurrentDay() {
+        cleanTerminal();
+        getMes_viewer().showCurrentDay(countdays);
+    }
+
+    public void cleanTerminal() {
+        getMes_viewer().cleanScreen();
+    }
 
     public void displayInternalOrders() {
 
@@ -446,26 +371,27 @@ public class MES {
 
         getMes_viewer().showExitWH(getExitWH());
     }
+
     public void displayPieceHistory() {
         getMes_viewer().showPiecesHistory(getPiecesHistories());
     }
 
     public void displayCounters() {
         int[][] mCounter = new int[6][9];
-        for (int i = 0; i < 9; i++) mCounter[0][i] = getM11Counter(i+1);
-        for (int i = 0; i < 9; i++) mCounter[1][i] = getM12Counter(i+1);
-        for (int i = 0; i < 9; i++) mCounter[2][i] = getM13Counter(i+1);
-        for (int i = 0; i < 9; i++) mCounter[3][i] = getM21Counter(i+1);
-        for (int i = 0; i < 9; i++) mCounter[4][i] = getM22Counter(i+1);
-        for (int i = 0; i < 9; i++) mCounter[5][i] = getM23Counter(i+1);
+        for (int i = 0; i < 9; i++) mCounter[0][i] = getM11Counter(i + 1);
+        for (int i = 0; i < 9; i++) mCounter[1][i] = getM12Counter(i + 1);
+        for (int i = 0; i < 9; i++) mCounter[2][i] = getM13Counter(i + 1);
+        for (int i = 0; i < 9; i++) mCounter[3][i] = getM21Counter(i + 1);
+        for (int i = 0; i < 9; i++) mCounter[4][i] = getM22Counter(i + 1);
+        for (int i = 0; i < 9; i++) mCounter[5][i] = getM23Counter(i + 1);
 
         int[] totals = new int[6];
         totals[0] = getMachineXXTotalCounter(11);
         totals[1] = getMachineXXTotalCounter(12);
         totals[2] = getMachineXXTotalCounter(13);
-        totals[3] = getMachineXXTotalCounter(21);
-        totals[4] = getMachineXXTotalCounter(22);
-        totals[5] = getMachineXXTotalCounter(23);
+        totals[3] = getMachineXXTotalCounter(23);
+        totals[4] = getMachineXXTotalCounter(21);
+        totals[5] = getMachineXXTotalCounter(22);
 
         mes_viewer.showCounters(mCounter, totals);
     }
@@ -484,9 +410,9 @@ public class MES {
 
     public void displayPusherCounters() {
         int[][] pCounter = new int[3][9];
-        for (int i = 0; i < 9; i++) pCounter[0][i] = getPusher1Counter(i+1);
-        for (int i = 0; i < 9; i++) pCounter[1][i] = getPusher2Counter(i+1);
-        for (int i = 0; i < 9; i++) pCounter[2][i] = getPusher3Counter(i+1);
+        for (int i = 0; i < 9; i++) pCounter[0][i] = getPusher1Counter(i + 1);
+        for (int i = 0; i < 9; i++) pCounter[1][i] = getPusher2Counter(i + 1);
+        for (int i = 0; i < 9; i++) pCounter[2][i] = getPusher3Counter(i + 1);
 
         int[] pTotals = new int[3];
         pTotals[0] = getPusherXTotalCounter(1);
@@ -498,26 +424,48 @@ public class MES {
 
     // ****************** Funções relacionadas com os contadores de peças na zona E **************** //
 
+    private int[] pusher1Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] pusher2Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] pusher3Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    private int[] machine11Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine12Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine13Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine21Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine22Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] machine23Counter = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    private int machine11WorkingTime = 0;
+    private int machine12WorkingTime = 0;
+    private int machine13WorkingTime = 0;
+    private int machine21WorkingTime = 0;
+    private int machine22WorkingTime = 0;
+    private int machine23WorkingTime = 0;
+
     // ---- Retornam o novo valor da contagem --- //
     public int incrementPusher1Counter(int pieceType) {
-        return ++pusher1Counter[pieceType-1];
+        return ++pusher1Counter[pieceType - 1];
     }
+
     public int incrementPusher2Counter(int pieceType) {
-        return ++pusher2Counter[pieceType-1];
+        return ++pusher2Counter[pieceType - 1];
     }
+
     public int incrementPusher3Counter(int pieceType) {
-        return ++pusher3Counter[pieceType-1];
+        return ++pusher3Counter[pieceType - 1];
     }
 
     // ---- Retornam o valor da contagem --- //
     public int getPusher1Counter(int pieceType) {
-        return pusher1Counter[pieceType-1];
+        return pusher1Counter[pieceType - 1];
     }
+
     public int getPusher2Counter(int pieceType) {
-        return pusher2Counter[pieceType-1];
+        return pusher2Counter[pieceType - 1];
     }
+
     public int getPusher3Counter(int pieceType) {
-        return pusher3Counter[pieceType-1];
+        return pusher3Counter[pieceType - 1];
     }
 
     // ---- Retorna a quantidade total de peças entregues pelo pusher X ---- //
@@ -545,47 +493,56 @@ public class MES {
     // ******************************************************************************************* //
 
 
-
     // ******************** Funções relacionadas com os contadores de peças maquinadas ******************* //
 
     // ---- Retornam o novo valor da contagem ---- //
     public int incrementM11Counter(int pieceType) {
-        return ++machine11Counter[pieceType-1];
+        return ++machine11Counter[pieceType - 1];
     }
+
     public int incrementM12Counter(int pieceType) {
-        return ++machine12Counter[pieceType-1];
+        return ++machine12Counter[pieceType - 1];
     }
+
     public int incrementM13Counter(int pieceType) {
-        return ++machine13Counter[pieceType-1];
+        return ++machine13Counter[pieceType - 1];
     }
+
     public int incrementM21Counter(int pieceType) {
-        return ++machine21Counter[pieceType-1];
+        return ++machine21Counter[pieceType - 1];
     }
+
     public int incrementM22Counter(int pieceType) {
-        return ++machine22Counter[pieceType-1];
+        return ++machine22Counter[pieceType - 1];
     }
+
     public int incrementM23Counter(int pieceType) {
-        return ++machine23Counter[pieceType-1];
+        return ++machine23Counter[pieceType - 1];
     }
 
     // ---- Retornam o valor da contagem ---- //
     public int getM11Counter(int pieceType) {
-        return machine11Counter[pieceType-1];
+        return machine11Counter[pieceType - 1];
     }
+
     public int getM12Counter(int pieceType) {
-        return machine12Counter[pieceType-1];
+        return machine12Counter[pieceType - 1];
     }
+
     public int getM13Counter(int pieceType) {
-        return machine13Counter[pieceType-1];
+        return machine13Counter[pieceType - 1];
     }
+
     public int getM21Counter(int pieceType) {
-        return machine21Counter[pieceType-1];
+        return machine21Counter[pieceType - 1];
     }
+
     public int getM22Counter(int pieceType) {
-        return machine22Counter[pieceType-1];
+        return machine22Counter[pieceType - 1];
     }
+
     public int getM23Counter(int pieceType) {
-        return machine23Counter[pieceType-1];
+        return machine23Counter[pieceType - 1];
     }
 
     // ---- Retorna a quantidade total de peças operadas por uma máquina ---- //
@@ -594,7 +551,7 @@ public class MES {
     public int getMachineXXTotalCounter(int XX) {
         int counter = 0;
 
-        switch(XX) {
+        switch (XX) {
             case 11 -> {
                 for (int i : machine11Counter) counter += i;
                 return counter;
@@ -633,32 +590,54 @@ public class MES {
     // ********** Funções relativas à contagem do tempo de trabalho de cada máquina ********** //
 
     // Incrementam o tempo que as máquinas estiveram a operar
-    public void incrementM11WorkTime(int delta){
+    public void incrementM11WorkTime(int delta) {
         machine11WorkingTime += delta;
     }
-    public void incrementM12WorkTime(int delta){
+
+    public void incrementM12WorkTime(int delta) {
         machine12WorkingTime += delta;
     }
-    public void incrementM13WorkTime(int delta){
+
+    public void incrementM13WorkTime(int delta) {
         machine13WorkingTime += delta;
     }
-    public void incrementM21WorkTime(int delta){
+
+    public void incrementM21WorkTime(int delta) {
         machine21WorkingTime += delta;
     }
-    public void incrementM22WorkTime(int delta){
+
+    public void incrementM22WorkTime(int delta) {
         machine22WorkingTime += delta;
     }
-    public void incrementM23WorkTime(int delta){
+
+    public void incrementM23WorkTime(int delta) {
         machine23WorkingTime += delta;
     }
 
     // Retornam os tempos que as máquinas estiveram a operar
-    public int getM11WorkingTime() { return machine11WorkingTime;}
-    public int getM12WorkingTime() { return machine12WorkingTime;}
-    public int getM13WorkingTime() { return machine13WorkingTime;}
-    public int getM21WorkingTime() { return machine21WorkingTime;}
-    public int getM22WorkingTime() { return machine22WorkingTime;}
-    public int getM23WorkingTime() { return machine23WorkingTime;}
+    public int getM11WorkingTime() {
+        return machine11WorkingTime;
+    }
+
+    public int getM12WorkingTime() {
+        return machine12WorkingTime;
+    }
+
+    public int getM13WorkingTime() {
+        return machine13WorkingTime;
+    }
+
+    public int getM21WorkingTime() {
+        return machine21WorkingTime;
+    }
+
+    public int getM22WorkingTime() {
+        return machine22WorkingTime;
+    }
+
+    public int getM23WorkingTime() {
+        return machine23WorkingTime;
+    }
 
     // ************************************************************************************** //
 

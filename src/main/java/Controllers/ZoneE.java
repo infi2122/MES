@@ -27,25 +27,32 @@ public class ZoneE extends Thread {
 
     @Override
     public void run() {
-        synchronized (mes) {
+        try{
+            synchronized (mes) {
 
-            int pieceQtyZoneE = handlePlacementOfPieces();
-//          System.out.println("N pieces in Zone E: " + pieceQtyZoneE);
+                handlePlacementOfPieces();
 
-            // Entrega de peças e Estatísticas
-            setShippingTimmingsAndCounters();
+                // Entrega de peças e Estatísticas
+                setShippingTimmingsAndCounters();
 
-            // Resetar flag placingPiece
-            updatePlacingPieceFlag();
+                // Resetar flag placingPiece
+                updatePlacingPieceFlag();
+
+                // Liga os tapetes nos últimos 5s de cada dia
+                sendPiecesAway();
+            }
+        }
+        catch( Throwable t ){
+            System.out.println("Zona E" + t );
         }
     }
 
-    public int handlePlacementOfPieces() {
+    public void handlePlacementOfPieces() {
 
         ArrayList<shippingOrder> allShippingOrders = mes.getShippingOrder(); // Obter todas as shipping orders
 
         for (shippingOrder titanic : allShippingOrders) { // Verificar se alguma shipping order é para hoje
-            if (titanic.getStartDate() <= mes.getCountdays() && allThePiecesArrived(titanic)) { // Se order for para hoje
+            if (titanic.getStartDate() <= mes.getCountdays() && allThePiecesArrived(titanic)) { // Se order for para hoje e tme a quantidade toda terminada
 
                 ArrayList<piece> piecesInExitWH = mes.getExitWH().getPieces(); // Obter todas as peças no armazem de saída
 
@@ -60,29 +67,53 @@ public class ZoneE extends Thread {
 
         // Vai correr em todos os ciclos do programa
         // Verifica as condições para alterar o registo que retira peça do armazem de saída
-        if (piecesToExport.size() > 0 && piecesInZoneE.size() <= 12 && !placingPiece) {
+        if (piecesToExport.size() > 0 && piecesInZoneE.size() <= 12 && !placingPiece && gotTimeToExport(piecesToExport.get(0).getOrderID())) {
             placingPiece = true;
-            int placedPieceId = placePieceInConveyor(); // Coloca essas peças no tapete
-        }
+            placePieceInConveyor(); // Coloca essas peças no tapete
 
-        return piecesInZoneE.size();
+        }
 
     }
 
+    private boolean gotTimeToExport(int orderID) {
+        // Variável que diz quanto tempo, no dia atual, falta para chegar aos 55 segundos
+        // Exemplo: Se currentTime = 62, então timeLeftBefore55 = 55-(62-60) = 53 s
+        int timeLeftBefore55 = (int) (55 - (mes.getCurrentTime()-mes.getCountdays()*60) );
+        int qty = 0;
+        shippingOrder arpaoDoPP = null;
 
-    public int placePieceInConveyor() {
+        // Vai buscar o tamanho da encomenda correspondente à peça na primeira posição do piecesToExport
+        for (shippingOrder battleship : mes.getShippingOrder()) {
+            if (battleship.getManufacturingID() == orderID) arpaoDoPP = battleship;
+        }
+
+        assert arpaoDoPP != null;
+        qty = arpaoDoPP.getQty();
+
+        if (timeLeftBefore55 > qty*4) {
+            arpaoDoPP.setQty(arpaoDoPP.getQty()-1);
+            return true;
+        }
+
+        // Se não houver tempo, espera pelo próximo dia
+        else return false;
+
+    }
+
+    public void placePieceInConveyor() {
         // Função que literalmente altera o registo no plc para colocar peça
         // Apenas transmite o pieceID para o plc, o resto guarda numa arrayList de peças chamada piecesInZoneE
         piece p = piecesToExport.get(0); // Remove-se sempre a primeira peça na lista
+
         sendPieceCodeToPLC(p.getExpectedType(), p.getPieceID()); // Código enviado para o plc
 
         p.setShippingStart((int) mes.getCurrentTime()); // Define o tempo de início da exportação
 
         piecesInZoneE.add(p);
-        mes.getExitWH().getPieces().remove(p); // Remove peça da arrayList do armazém
-        piecesToExport.remove(0); // Remove peça da lista temporária de peças a exportar
 
-        return p.getPieceID();
+        piecesToExport.remove(0); // Remove peça da lista temporária de peças a exportar
+        if(!mes.getExitWH().getPieces().remove(p)) System.out.println("nao encontrou"); // Remove peça da arrayList do armazém
+
     }
 
     private void sendPieceCodeToPLC(int PieceType, int PieceID) {
@@ -193,6 +224,7 @@ public class ZoneE extends Thread {
 
         return RE;
     }
+
     private boolean RE_pusher2_pieceDelivered() {
         boolean new_pusher2_pieceDelivered = mes.getOpcClient().readBool("pusher2_pieceDelivered", "GVL");
         boolean RE = !old_pusher2_pieceDelivered && new_pusher2_pieceDelivered;
@@ -200,6 +232,7 @@ public class ZoneE extends Thread {
 
         return RE;
     }
+
     private boolean RE_pusher3_pieceDelivered() {
         boolean new_pusher3_pieceDelivered = mes.getOpcClient().readBool("pusher3_pieceDelivered", "GVL");
         boolean RE = !old_pusher3_pieceDelivered && new_pusher3_pieceDelivered;
@@ -266,8 +299,13 @@ public class ZoneE extends Thread {
             }
         }
 
+        if( pieceType<=0 ){
+            System.out.println("Erro no incrementador do pusher: Piece type = "+ pieceType );
+            return;
+        }
+
         // incrementa o contador do pusher indicado
-        switch(pusher) {
+        switch (pusher) {
             case 1 -> mes.incrementPusher1Counter(pieceType);
             case 2 -> mes.incrementPusher2Counter(pieceType);
             case 3 -> mes.incrementPusher3Counter(pieceType);
@@ -275,6 +313,18 @@ public class ZoneE extends Thread {
         }
     }
 
+    private void sendPiecesAway() {
+
+        int seconds = (int) mes.getCurrentTime() - mes.getCountdays() * 60;
+
+        if (seconds >= 55){
+            mes.getOpcClient().writeBool("sliders_on","GVL",1);
+        }
+        else{
+            mes.getOpcClient().writeBool("sliders_on","GVL",0);
+        }
+
+    }
 
 }
 

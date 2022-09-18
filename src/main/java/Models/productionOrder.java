@@ -10,10 +10,6 @@ public class productionOrder {
     private int qty;
     private ArrayList<rawMaterial> rawMaterials;
 
-    private int pieces_in_sfs;
-    private int pieces_done;
-
-
     public productionOrder(int manufactID, int final_type, int start_time, int qty) {
         this.manufacturingID = manufactID;
         this.qty = qty;
@@ -40,22 +36,6 @@ public class productionOrder {
 
     public int getStartDate() {
         return startDate;
-    }
-
-    public int getPieces_in_sfs() {
-        return pieces_in_sfs;
-    }
-
-    public void setPieces_in_sfs(int pieces_in_sfs) {
-        this.pieces_in_sfs = pieces_in_sfs;
-    }
-
-    public int getPieces_done() {
-        return pieces_done;
-    }
-
-    public void setPieces_done(int pieces_done) {
-        this.pieces_done = pieces_done;
     }
 
     public boolean is_Done(){

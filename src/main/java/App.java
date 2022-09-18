@@ -7,6 +7,7 @@ import Viewers.MES_Viewer;
 import comsProtocols.ClientTCP;
 import comsProtocols.sharedResources;
 
+import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,11 +26,8 @@ public class App {
 
         MES mes = new MES(new MES_Viewer(), sharedBuffer);
 
-//        mes.testMES_zonaA();
-//        mes.testMES_zonaC();
-//       mes.testMES_zonaE();
         ClientTCP client = new ClientTCP();
-        client.startConnection(ERP_IP, ERP_to_MES_port, sharedBuffer,0,59);
+        client.startConnection(ERP_IP, ERP_to_MES_port, sharedBuffer, 0, 59);
 
         /* For synchronize time in ERP and MES */
         mes.setStartTime(true);
@@ -43,9 +41,33 @@ public class App {
         schedulerERP.scheduleAtFixedRate(new myMES(mes), 0, 60, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new myTimer(mes), 0, 1, TimeUnit.SECONDS);
         schedulerERP.scheduleAtFixedRate(new zoneA(mes), 0, 200, TimeUnit.MILLISECONDS);
-        schedulerERP.scheduleAtFixedRate(new zoneC(mes), 0, 100, TimeUnit.MILLISECONDS);
-        schedulerERP.scheduleAtFixedRate(new ZoneE(mes), 0, 200, TimeUnit.MILLISECONDS);
+        schedulerERP.scheduleAtFixedRate(new zoneC(mes), 20, 200, TimeUnit.MILLISECONDS);
+        schedulerERP.scheduleAtFixedRate(new ZoneE(mes), 100, 200, TimeUnit.MILLISECONDS);
 
+        Scanner input = new Scanner(System.in);
+        // CONTEXT MENU
+        boolean exit = true;
+        while (exit) {
+            //erp.cleanTerminal();
+            mes.displayMenu();
+            switch (input.nextLine()) {
+                case "1" -> mes.displayInternalOrders();
+                case "2" -> mes.displayEntryWH();
+                case "3" -> mes.displayExitWH();
+                case "4" -> mes.displayPieceHistory();
+                // Display de estatísticas
+                case "5" -> mes.displayCounters();
+                case "6" -> mes.displayMachinesTimmings();
+                case "7" -> mes.displayPusherCounters();
+                case "0" -> exit = false;
+                default -> {
+                    continue;
+                }
+            }
+            if (exit)
+                mes.displayCurrentDay();
+        }
+        System.exit(0);
     }
 
     private static class myMES extends Thread {
@@ -58,21 +80,16 @@ public class App {
 
         @Override
         public void run() {
-            synchronized (mes) {
-                mes.receiveInternalOrders();
-                mes.displayInternalOrders();
-                mes.displayEntryWH();
-                mes.displayExitWH();
-                mes.displayPieceHistory();
-                mes.orderTimes();
-
-                // Display de estatísticas
-                mes.displayCounters();
-                mes.displayMachinesTimmings();
-                mes.displayPusherCounters();
+            try{
+                synchronized (mes) {
+                    mes.receiveInternalOrders();
+                    mes.orderTimes();
+                }
+            }
+            catch( Throwable t ){
+                System.out.println("My MES" + t.getMessage() );
             }
         }
-
     }
 
     private static class myTimer extends Thread {
@@ -85,9 +102,15 @@ public class App {
 
         @Override
         public void run() {
-            synchronized (mes) {
-                mes.countTime();
+            try{
+                synchronized (mes) {
+                    mes.countTime();
+                }
             }
+            catch( Throwable t ){
+                System.out.println("Timer" + t.getMessage() );
+            }
+
         }
     }
 
